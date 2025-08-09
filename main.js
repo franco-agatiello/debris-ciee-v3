@@ -1,24 +1,14 @@
 let debris = [];
-let mapa, capaPuntos, capaCalor, modo = "puntos";
-let leyendaPuntos, leyendaCalor;
+let map; // MapLibre instance
+let modo = "puntos";
 
-// Colores personalizados por rango de año
-const iconoAzul = L.icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
-  iconSize: [18, 29], iconAnchor: [9, 29], popupAnchor: [1, -30]
-});
-const iconoVerde = L.icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
-  iconSize: [18, 29], iconAnchor: [9, 29], popupAnchor: [1, -30]
-});
-const iconoRojo = L.icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-  iconSize: [18, 29], iconAnchor: [9, 29], popupAnchor: [1, -30]
-});
-const iconoAmarillo = L.icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png',
-  iconSize: [18, 29], iconAnchor: [9, 29], popupAnchor: [1, -30]
-});
+// Colores para marcadores
+const markerColors = {
+  azul: "#2196F3",
+  verde: "#4CAF50",
+  rojo: "#E53935",
+  amarillo: "#FFEB3B"
+};
 
 async function cargarDatos() {
   const resp = await fetch('data/debris.json');
@@ -67,22 +57,14 @@ function filtrarDatos() {
   });
 }
 
-// Colores por rangos de año solicitados
 function marcadorPorFecha(fecha) {
   const year = parseInt(fecha.slice(0,4), 10);
-  if (year >= 2004 && year <= 2010) return iconoAzul;
-  if (year >= 2011 && year <= 2017) return iconoVerde;
-  if (year >= 2018 && year <= 2025) return iconoRojo;
-  return iconoAmarillo; // Antes de 2004 (o si fecha no válida) usa amarillo
+  if (year >= 2004 && year <= 2010) return markerColors.azul;
+  if (year >= 2011 && year <= 2017) return markerColors.verde;
+  if (year >= 2018 && year <= 2025) return markerColors.rojo;
+  return markerColors.amarillo;
 }
 
-// Actualiza los estilos de los botones de modo
-function actualizarBotonesModo() {
-  document.getElementById("modo-puntos").classList.toggle("active", modo === "puntos");
-  document.getElementById("modo-calor").classList.toggle("active", modo === "calor");
-}
-
-// Popup: Solo muestra datos no nulos
 function popupContenidoDebris(d) {
   let contenido = `<strong>${d.nombre ?? ''}</strong><br>`;
   if (d.pais) contenido += `País: ${d.pais}<br>`;
@@ -90,102 +72,139 @@ function popupContenidoDebris(d) {
   if (d.material_principal) contenido += `Material: ${d.material_principal}<br>`;
   if (d.inclinacion_orbita !== null && d.inclinacion_orbita !== undefined) contenido += `Inclinación órbita: ${d.inclinacion_orbita}°<br>`;
   if (d.fecha) contenido += `Fecha: ${d.fecha}<br>`;
-  if (d.imagen) contenido += `<img src="${d.imagen}" alt="${d.nombre}">`;
+  if (d.imagen) contenido += `<img src="${d.imagen}" alt="${d.nombre}" style="max-width:220px;border-radius:8px;">`;
   return contenido;
 }
 
+function initMapa() {
+  map = new maplibregl.Map({
+    container: 'map',
+    style: 'osm-liberty-style.json', // O el URL directo si está online
+    center: [0, 0],
+    zoom: 2
+  });
+  map.on('load', () => {
+    cargarDatos();
+  });
+}
+
 function actualizarMapa() {
+  if (!map || !map.isStyleLoaded()) return;
   const datosFiltrados = filtrarDatos();
 
-  if (capaPuntos) {
-    capaPuntos.clearLayers();
-    try { mapa.removeLayer(capaPuntos); } catch (e) {}
-    capaPuntos = null;
+  // Elimina capa anterior si existe
+  if (map.getSource('debris')) {
+    if (map.getLayer('debris-points')) map.removeLayer('debris-points');
+    if (map.getLayer('debris-heat')) map.removeLayer('debris-heat');
+    map.removeSource('debris');
   }
-  if (capaCalor && mapa.hasLayer(capaCalor)) {
-    mapa.removeLayer(capaCalor);
-    capaCalor = null;
-  }
-  if (leyendaPuntos) leyendaPuntos.remove();
-  if (leyendaCalor) leyendaCalor.remove();
+
+  const geojson = {
+    type: "FeatureCollection",
+    features: datosFiltrados.map(d => ({
+      type: "Feature",
+      geometry: { type: "Point", coordinates: [d.lugar_caida.lon, d.lugar_caida.lat] },
+      properties: {
+        popup: popupContenidoDebris(d),
+        color: marcadorPorFecha(d.fecha)
+      }
+    }))
+  };
+
+  map.addSource('debris', { type: 'geojson', data: geojson });
 
   if (modo === "puntos") {
-    capaPuntos = L.layerGroup();
-    datosFiltrados.forEach(d => {
-      const marker = L.marker([d.lugar_caida.lat, d.lugar_caida.lon], {icon: marcadorPorFecha(d.fecha)})
-        .bindPopup(popupContenidoDebris(d), {autoPan: true});
-      marker.on('popupopen', function(e) {
-        const imgs = e.popup._contentNode.querySelectorAll('img');
-        imgs.forEach(function(img) {
-          img.addEventListener('load', function() {
-            e.popup.update();
-          });
-        });
-      });
-      capaPuntos.addLayer(marker);
+    map.addLayer({
+      id: 'debris-points',
+      type: 'circle',
+      source: 'debris',
+      paint: {
+        'circle-radius': 8,
+        'circle-color': ['get', 'color'],
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#333'
+      }
     });
-    capaPuntos.addTo(mapa);
-    mostrarLeyendaPuntos();
-  } else {
-    const heatData = datosFiltrados.map(d => [d.lugar_caida.lat, d.lugar_caida.lon]);
-    if (heatData.length) {
-      capaCalor = L.heatLayer(heatData, {
-        radius: 30,
-        blur: 25,
-        minOpacity: 0.4,
-        max: 30,
-        gradient: {
-          0.1: 'blue',
-          0.3: 'lime',
-          0.6: 'yellow',
-          1.0: 'red'
-        }
-      }).addTo(mapa);
-    }
-    mostrarLeyendaCalor();
+
+    map.on('click', 'debris-points', function(e) {
+      const coordinates = e.features[0].geometry.coordinates.slice();
+      const popupHtml = e.features[0].properties.popup;
+      new maplibregl.Popup()
+        .setLngLat(coordinates)
+        .setHTML(popupHtml)
+        .addTo(map);
+    });
+
+    map.on('mouseenter', 'debris-points', function() {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+    map.on('mouseleave', 'debris-points', function() {
+      map.getCanvas().style.cursor = '';
+    });
+
+  } else if (modo === "calor") {
+    map.addLayer({
+      id: 'debris-heat',
+      type: 'heatmap',
+      source: 'debris',
+      maxzoom: 18,
+      paint: {
+        'heatmap-radius': 30,
+        'heatmap-intensity': 1,
+        'heatmap-opacity': 0.7,
+        'heatmap-color': [
+          'interpolate',
+          ['linear'],
+          ['heatmap-density'],
+          0, 'blue',
+          0.3, 'lime',
+          0.6, 'yellow',
+          1.0, 'red'
+        ]
+      }
+    });
   }
   actualizarBotonesModo();
+  mostrarLeyenda();
 }
 
-function mostrarLeyendaPuntos() {
-  leyendaPuntos = L.control({position: 'bottomright'});
-  leyendaPuntos.onAdd = function (map) {
-    const div = L.DomUtil.create('div', 'info legend');
-    div.innerHTML += `<strong>Color del marcador según año de caída</strong><br>`;
-    div.innerHTML += `<img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png" style="width:13px;vertical-align:middle;"> <span style="color:#999">2004 a 2010</span><br>`;
-    div.innerHTML += `<img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png" style="width:13px;vertical-align:middle;"> <span style="color:#999">2011 a 2017</span><br>`;
-    div.innerHTML += `<img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" style="width:13px;vertical-align:middle;"> <span style="color:#999">2018 a 2025</span><br>`;
-    div.innerHTML += `<img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png" style="width:13px;vertical-align:middle;"> <span style="color:#999">Antes de 2004</span><br>`;
-    return div;
-  };
-  leyendaPuntos.addTo(mapa);
+function actualizarBotonesModo() {
+  document.getElementById("modo-puntos").classList.toggle("active", modo === "puntos");
+  document.getElementById("modo-calor").classList.toggle("active", modo === "calor");
 }
 
-function mostrarLeyendaCalor() {
-  leyendaCalor = L.control({position: 'bottomright'});
-  leyendaCalor.onAdd = function (map) {
-    const div = L.DomUtil.create('div', 'info legend');
-    const grades = ['Bajo', 'Medio', 'Alto', 'Muy alto'];
-    const colors = ['blue', 'lime', 'yellow', 'red'];
-    div.innerHTML += '<strong>Densidad de caídas</strong><br>';
-    for (let i = 0; i < grades.length; i++) {
-      div.innerHTML +=
-        `<i style="background:${colors[i]};width:14px;height:14px;display:inline-block;margin-right:5px;border-radius:2px;"></i> ${grades[i]}<br>`;
-    }
-    return div;
-  };
-  leyendaCalor.addTo(mapa);
-}
-
-// MAPTILER TILE LAYER
-function initMapa() {
-  mapa = L.map('map').setView([0, 0], 2);
-  L.tileLayer('https://api.maptiler.com/maps/01988ca1-782f-7785-b2cc-278da503dbe7/256/{z}/{x}/{y}.png?key=ukNrnsjw0xxDaL3yshLK', {
-    attribution: '&copy; <a href="https://www.maptiler.com/copyright/" target="_blank">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
-    tileSize: 256,
-    maxZoom: 18,
-    minZoom: 0
-  }).addTo(mapa);
+function mostrarLeyenda() {
+  // Puedes agregar tu leyenda personalizada en el DOM
+  // por ejemplo, en el sidebar o flotante usando un div
+  // Aquí un ejemplo básico:
+  let leyenda = document.getElementById("leyenda-marcadores");
+  if (!leyenda) {
+    leyenda = document.createElement("div");
+    leyenda.id = "leyenda-marcadores";
+    leyenda.className = "info legend";
+    leyenda.style.position = "absolute";
+    leyenda.style.right = "30px";
+    leyenda.style.bottom = "30px";
+    leyenda.style.zIndex = "9999";
+    document.body.appendChild(leyenda);
+  }
+  if (modo === "puntos") {
+    leyenda.innerHTML = `
+      <strong>Color del marcador según año de caída</strong><br>
+      <span style="display:inline-block;width:13px;height:13px;background:${markerColors.azul};border-radius:2px;margin-right:4px;"></span> 2004 a 2010<br>
+      <span style="display:inline-block;width:13px;height:13px;background:${markerColors.verde};border-radius:2px;margin-right:4px;"></span> 2011 a 2017<br>
+      <span style="display:inline-block;width:13px;height:13px;background:${markerColors.rojo};border-radius:2px;margin-right:4px;"></span> 2018 a 2025<br>
+      <span style="display:inline-block;width:13px;height:13px;background:${markerColors.amarillo};border-radius:2px;margin-right:4px;"></span> Antes de 2004<br>
+    `;
+  } else {
+    leyenda.innerHTML = `
+      <strong>Densidad de caídas</strong><br>
+      <span style="display:inline-block;width:14px;height:14px;background:blue;border-radius:2px;margin-right:5px;"></span> Bajo<br>
+      <span style="display:inline-block;width:14px;height:14px;background:lime;border-radius:2px;margin-right:5px;"></span> Medio<br>
+      <span style="display:inline-block;width:14px;height:14px;background:yellow;border-radius:2px;margin-right:5px;"></span> Alto<br>
+      <span style="display:inline-block;width:14px;height:14px;background:red;border-radius:2px;margin-right:5px;"></span> Muy alto<br>
+    `;
+  }
 }
 
 function listeners() {
@@ -204,6 +223,5 @@ function listeners() {
 
 document.addEventListener("DOMContentLoaded", () => {
   initMapa();
-  cargarDatos();
   listeners();
 });
