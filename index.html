@@ -19,9 +19,15 @@
         </a>
         <h4>Filtros</h4>
         <form id="filter-form">
-          <label for="pais">País de origen:</label>
-          <!-- El select ahora tiene size, scroll y solo país -->
-          <select class="form-select mb-2" id="pais" size="8" style="overflow-y:auto; max-height:220px;"></select>
+          <label for="pais-dropdown">País de origen:</label>
+          <div class="dropdown mb-2" id="pais-dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="dropdownPaisBtn" data-bs-toggle="dropdown" aria-expanded="false">
+              Seleccionar país
+            </button>
+            <ul class="dropdown-menu w-100" aria-labelledby="dropdownPaisBtn" id="dropdownPaisMenu" style="max-height:220px; overflow-y:auto;">
+              <!-- Los <li> de país se llenan por JS -->
+            </ul>
+          </div>
           <label for="fecha-desde">Fecha desde:</label>
           <input type="date" class="form-control mb-2" id="fecha-desde"/>
           <label for="fecha-hasta">Fecha hasta:</label>
@@ -59,6 +65,7 @@
   </div>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
