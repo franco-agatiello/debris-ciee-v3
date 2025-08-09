@@ -201,8 +201,8 @@ main[style] {
   margin-bottom: 20px !important;
 }
 
-/* Mejorar el select largo de países */
-#pais {
+/* Mejorar el dropdown de países */
+#dropdownPaisMenu {
   max-height: 220px;
   overflow-y: auto;
 }
