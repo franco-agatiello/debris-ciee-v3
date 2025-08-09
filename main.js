@@ -177,9 +177,15 @@ function mostrarLeyendaCalor() {
   leyendaCalor.addTo(mapa);
 }
 
+// MAPTILER TILE LAYER
 function initMapa() {
   mapa = L.map('map').setView([0, 0], 2);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa);
+  L.tileLayer('https://api.maptiler.com/maps/01988ca1-782f-7785-b2cc-278da503dbe7/256/{z}/{x}/{y}.png?key=ukNrnsjw0xxDaL3yshLK', {
+    attribution: '&copy; <a href="https://www.maptiler.com/copyright/" target="_blank">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
+    tileSize: 256,
+    maxZoom: 18,
+    minZoom: 0
+  }).addTo(mapa);
 }
 
 function listeners() {
