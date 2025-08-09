@@ -31,13 +31,23 @@ function poblarFiltros() {
   // Paises ordenados alfabéticamente y sin duplicados
   const paises = Array.from(new Set(debris.map(d => d.pais).filter(p => p && p !== null)));
   paises.sort((a, b) => a.localeCompare(b, 'es'));
-  const paisSelect = document.getElementById("pais");
-  paisSelect.innerHTML = '<option value="">Todos</option>' + paises.map(p => `<option value="${p}">${p}</option>`).join('');
+  const menu = document.getElementById("dropdownPaisMenu");
+  menu.innerHTML = `<li><a class="dropdown-item" href="#" data-value="">Todos</a></li>` +
+    paises.map(p => `<li><a class="dropdown-item" href="#" data-value="${p}">${p}</a></li>`).join('');
+  // Actualizar el texto del botón al seleccionar
+  menu.querySelectorAll('.dropdown-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.getElementById('dropdownPaisBtn').textContent = this.textContent;
+      document.getElementById('dropdownPaisBtn').dataset.value = this.dataset.value;
+      actualizarMapa();
+    });
+  });
 }
 
 function obtenerFiltros() {
   return {
-    pais: document.getElementById("pais").value,
+    pais: document.getElementById("dropdownPaisBtn").dataset.value ?? "",
     fechaDesde: document.getElementById("fecha-desde").value,
     fechaHasta: document.getElementById("fecha-hasta").value,
     inclinacionMin: document.getElementById("inclinacion-min").value,
@@ -57,7 +67,7 @@ function filtrarDatos() {
   });
 }
 
-// Nuevo: Colores por rangos de año solicitados
+// Colores por rangos de año solicitados
 function marcadorPorFecha(fecha) {
   const year = parseInt(fecha.slice(0,4), 10);
   if (year >= 2004 && year <= 2010) return iconoAzul;
@@ -173,7 +183,7 @@ function initMapa() {
 }
 
 function listeners() {
-  ["pais", "fecha-desde", "fecha-hasta", "inclinacion-min", "inclinacion-max"].forEach(id => {
+  ["fecha-desde", "fecha-hasta", "inclinacion-min", "inclinacion-max"].forEach(id => {
     document.getElementById(id).addEventListener("change", actualizarMapa);
   });
   document.getElementById("modo-puntos").addEventListener("click", () => {
