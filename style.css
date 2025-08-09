@@ -1,0 +1,215 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden !important;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  background: #f7f9fb !important;
+  color: #23272f;
+  box-sizing: border-box;
+}
+
+/* Container principal: nunca más ancho que la ventana */
+body > .container-fluid {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Evita desbordes de la fila principal */
+.row.flex-nowrap {
+  flex-wrap: wrap !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box;
+  overflow-x: hidden !important;
+}
+
+/* Sidebar fijo en ancho */
+#sidebar {
+  min-height: 100vh;
+  background: #fff;
+  min-width: 170px;
+  max-width: 210px;
+  width: 210px;
+  box-sizing: border-box;
+  padding: 12px 8px !important;
+  border-right: 1px solid #dde1e7;
+  box-shadow: 2px 0 10px rgba(50,60,90,0.04);
+}
+
+#sidebar h4 {
+  font-size: 1.05rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #2c3e50;
+}
+
+#filter-form label {
+  font-size: 0.93rem;
+  font-weight: 500;
+  margin-top: 0.25rem;
+  color: #34495e;
+}
+
+#filter-form .form-select, #filter-form .form-control {
+  font-size: 0.93rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.7rem;
+}
+
+.sidebar-logo {
+  max-width: 140px;
+  display: block;
+  margin: 0 auto 0.5rem auto;
+}
+
+/* Main ocupa el resto del ancho */
+main[style] {
+  min-height: 100vh;
+  padding: 0 !important;
+  width: calc(100vw - 210px) !important;
+  max-width: calc(100vw - 210px) !important;
+  box-sizing: border-box;
+}
+
+#map {
+  width: 100% !important;
+  height: 100vh;
+  min-height: 100vh;
+  box-sizing: border-box;
+  border: none !important;
+  box-shadow: none !important;
+  background: #f7f9fb;
+}
+
+.btn-primary, .btn-secondary {
+  transition: background 0.2s, box-shadow 0.2s;
+  font-weight: 600;
+  border-radius: 0.6rem;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(44,62,80,0.05);
+  margin-bottom: 0.5rem;
+}
+.btn-primary.active, .btn-secondary.active {
+  box-shadow: 0 4px 16px rgba(44,62,80,0.10);
+  outline: 2px solid #0056b3;
+}
+
+.btn-primary:focus, .btn-secondary:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.15rem #007bff66;
+}
+
+/* Footer */
+#footer-ciee {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  font-size: 0.78rem;
+  color: #7a869a;
+  z-index: 9999;
+  background: rgba(255,255,255,0.93);
+  padding: 4px 10px 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #e1e5ec;
+  box-shadow: 0 2px 8px rgba(44,62,80,0.05);
+  text-align: center;
+  margin: 0 auto;
+  width: fit-content;
+  max-width: 98vw;
+  overflow-x: auto;
+}
+#footer-ciee a {
+  color: #007bff;
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  #sidebar {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    padding: 8px 3px !important;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: none;
+  }
+  main[style] {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+  }
+  #map {
+    min-height: 60vh;
+    height: 60vh;
+  }
+  #footer-ciee {
+    position: static;
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin: 16px 0 0 0;
+    left: 0;
+    bottom: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    transform: none;
+  }
+}
+
+/* Leyenda */
+.info.legend {
+  background: #fff;
+  opacity: 1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(44,62,80,0.08);
+  border: 1px solid #dde1e7;
+  font-size: 0.74rem;
+  color: #2c3e50;
+  min-width: 90px;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  line-height: 1.2;
+}
+.info.legend strong {
+  font-size: 0.81rem;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* Custom para imágenes popup */
+.leaflet-popup-content img {
+  box-shadow: 0 2px 12px rgba(44,62,80,0.10);
+  border-radius: 8px;
+  margin-top: 4px;
+  max-width: 220px;
+}
+
+.leaflet-bottom.leaflet-right .info.legend {
+  margin-right: 20px !important;
+  margin-bottom: 20px !important;
+}
+
+/* Mejorar el select largo de países */
+#pais {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+/* DEBUG VISUAL, descomentar si necesitás ver el desborde */
+/*
+* {
+  outline: 1px solid red !important;
+}
+*/
