@@ -82,7 +82,7 @@ function actualizarBotonesModo() {
   document.getElementById("modo-calor").classList.toggle("active", modo === "calor");
 }
 
-// Popup: Solo muestra datos no nulos y agrega botón de órbita si hay TLE
+// Popup: Solo muestra datos no nulos
 function popupContenidoDebris(d) {
   let contenido = `<strong>${d.nombre ?? ''}</strong><br>`;
   if (d.pais) contenido += `País: ${d.pais}<br>`;
@@ -90,63 +90,8 @@ function popupContenidoDebris(d) {
   if (d.material_principal) contenido += `Material: ${d.material_principal}<br>`;
   if (d.inclinacion_orbita !== null && d.inclinacion_orbita !== undefined) contenido += `Inclinación órbita: ${d.inclinacion_orbita}°<br>`;
   if (d.fecha) contenido += `Fecha: ${d.fecha}<br>`;
-  if (d.imagen) contenido += `<img src="${d.imagen}" alt="${d.nombre}"><br>`;
-  // Botón para órbita solo si hay TLE
-  if (d.tle1 && d.tle2) {
-    contenido += `<button class="btn btn-sm btn-info mt-2" onclick="mostrarOrbita('${d.nombre?.replace(/'/g,"")}', '${d.tle1}', '${d.tle2}', ${d.lugar_caida.lat}, ${d.lugar_caida.lon})">Ver órbita</button>`;
-  }
+  if (d.imagen) contenido += `<img src="${d.imagen}" alt="${d.nombre}">`;
   return contenido;
-}
-
-// Calcula trayectoria de órbita usando TLE y satellite.js
-function calcularOrbita(tle1, tle2, pasos = 90) {
-  const satrec = satellite.twoline2satrec(tle1, tle2);
-  let ahora = new Date();
-  let coords = [];
-  // Distribuye los puntos a lo largo de una órbita previa a la caída
-  for (let i = 0; i < pasos; i++) {
-    let minutos = (i * 90) / pasos; // órbita baja ~90 min
-    let fecha = new Date(ahora.getTime() - minutos * 60000);
-    let pv = satellite.propagate(satrec, fecha);
-    let pos = pv.position;
-    if (!pos) continue;
-    let gmst = satellite.gstime(fecha);
-    let gd = satellite.eciToGeodetic(pos, gmst);
-    let lat = satellite.degreesLat(gd.latitude);
-    let lon = satellite.degreesLong(gd.longitude);
-    coords.push([lat, lon]);
-  }
-  return coords;
-}
-
-// Muestra modal con mapa de órbita
-window.mostrarOrbita = function(nombre, tle1, tle2, lat, lon) {
-  // Crea el modal si no existe
-  let modal = document.getElementById('modal-orbita');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'modal-orbita';
-    modal.style = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;background:#000a;display:flex;align-items:center;justify-content:center;';
-    modal.innerHTML = `
-      <div style="background:#fff;padding:20px;position:relative;max-width:90vw;max-height:90vh;">
-        <button onclick="document.getElementById('modal-orbita').remove()" style="position:absolute;top:8px;right:8px;">Cerrar</button>
-        <h5>${nombre}</h5>
-        <div id="map-orbita" style="width:80vw;height:60vh;"></div>
-      </div>`;
-    document.body.appendChild(modal);
-  } else {
-    modal.style.display = 'flex';
-    document.getElementById('map-orbita').innerHTML = '';
-  }
-  // Inicializa el mapa después de un pequeño delay para que el div exista
-  setTimeout(() => {
-    let mapo = L.map('map-orbita').setView([lat, lon], 3);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapo);
-    // Calcula y dibuja la órbita
-    let trayectoria = calcularOrbita(tle1, tle2);
-    L.polyline(trayectoria, {color: 'red'}).addTo(mapo);
-    L.marker([lat, lon]).addTo(mapo).bindPopup('Punto de caída').openPopup();
-  }, 100);
 }
 
 function actualizarMapa() {
