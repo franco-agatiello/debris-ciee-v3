@@ -18,22 +18,5 @@
     "a": 79325.511,
     "apogeo": 145722.138,
     "perigeo": 172.613
-  },
-  {
-    "nombre": "EXAMPLE DEBRIS",
-    "pais": "RUSSIA",
-    "tamano_caida_kg": 500.0,
-    "material_principal": "UNKNOWN",
-    "fecha": "2024-05-15",
-    "fecha_tle": "2024-04-25",
-    "dias_diferencia": 20,
-    "inclinacion_orbita": 80.1,
-    "lugar_caida": {
-      "lat": 10.5,
-      "lon": -150.2
-    },
-    "imagen": null,
-    "tle1": "1 52026U 24050D   24116.59250000 .00000216  00000-0  53434-4 0  9996",
-    "tle2": "2 52026  80.1012 355.2345 0007890 290.4578  69.5422 15.68817351  1388"
   }
 ]
