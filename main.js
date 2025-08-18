@@ -78,13 +78,6 @@ function popupContenidoDebris(d,index){
   if(d.material_principal) contenido += `Material: ${d.material_principal}<br>`;
   if(d.inclinacion_orbita !== null && d.inclinacion_orbita !== undefined) contenido += `Inclinación órbita: ${d.inclinacion_orbita}°<br>`;
   if(d.fecha) contenido += `Fecha: ${d.fecha}<br>`;
-  // Agrega la información de la antigüedad de los datos del TLE si existe
-  if (d.fecha_tle && d.fecha) {
-    const dias_diferencia = Math.round((new Date(d.fecha) - new Date(d.fecha_tle)) / (1000 * 60 * 60 * 24));
-    if (dias_diferencia > 0) {
-      contenido += `<strong>Diferencia de datos:</strong> ${dias_diferencia} días<br>`;
-    }
-  }
   if(d.imagen) contenido += `<img src="${d.imagen}" alt="${d.nombre}"><br>`;
   if(d.tle1 && d.tle2) {
     contenido += `<button class="btn btn-sm btn-info mt-2" onclick="mostrarTrayectoria(${index})">Ver trayectoria</button>`;
@@ -177,6 +170,18 @@ window.mostrarTrayectoria = function(index) {
   const d = filtrarDatos()[index];
   if (!d.tle1 || !d.tle2) return alert("No hay TLE para este debris.");
 
+  // Añadir el cartel de advertencia de días
+  const modalBody = document.querySelector('#modalTrayectoria .modal-body');
+  const existingAlert = modalBody.querySelector('.alert');
+  if (existingAlert) { existingAlert.remove(); }
+  if (d.dias_diferencia > 0) {
+    const alerta = document.createElement('div');
+    alerta.className = 'alert alert-info py-1 px-2 mt-2';
+    alerta.style.fontSize = '0.8em';
+    alerta.innerHTML = `<strong>⚠️ Info:</strong> Los datos orbitales son de ${d.dias_diferencia} días antes de la caída. La trayectoria puede variar.`;
+    modalBody.prepend(alerta);
+  }
+  
   setTimeout(() => {
     if (mapaTrayectoria) { mapaTrayectoria.remove(); mapaTrayectoria = null; }
     mapaTrayectoria = L.map('mapTrayectoria').setView([d.lugar_caida.lat, d.lugar_caida.lon], 3);
@@ -187,19 +192,6 @@ window.mostrarTrayectoria = function(index) {
       { minZoom: 1, maxZoom: 20 }
     ).addTo(mapaTrayectoria);
 
-    // Alerta para la diferencia de tiempo entre TLE y la caída
-    const modalBody = document.querySelector('#modalTrayectoria .modal-body');
-    const existingAlert = modalBody.querySelector('.alert');
-    if (existingAlert) { existingAlert.remove(); }
-    if (d.fecha_tle && d.fecha) {
-      const dias_diferencia = Math.round((new Date(d.fecha) - new Date(d.fecha_tle)) / (1000 * 60 * 60 * 24));
-      if (dias_diferencia > 0) {
-        const alerta = document.createElement('div');
-        alerta.className = 'alert alert-warning my-3';
-        alerta.innerHTML = `<i class="bi bi-info-circle-fill me-2"></i><strong>Atención:</strong> Los datos orbitales fueron tomados ${dias_diferencia} días antes de la caída. La trayectoria puede no coincidir exactamente con el punto de impacto debido al arrastre atmosférico.`;
-        modalBody.prepend(alerta);
-      }
-    }
     const satrec = satellite.twoline2satrec(d.tle1, d.tle2);
 
     const meanMotion = satrec.no * 1440 / (2 * Math.PI); // satrec.no en rad/min
@@ -207,13 +199,13 @@ window.mostrarTrayectoria = function(index) {
     const vueltas = 4;
     const minutosATrazar = periodoMin * vueltas;
 
-    // Usa la fecha de la caída como punto de referencia para la simulación
-    const epochDate = new Date(d.fecha);
-    
+    const jday = satrec.epochdays;
+    const year = satrec.epochyr < 57 ? satrec.epochyr + 2000 : satrec.epochyr + 1900;
+    const epochDate = new Date(Date.UTC(year, 0, 1) + (jday - 1) * 24 * 60 * 60 * 1000);
+
     let segments = [], segment = [], prevLon = null;
-    // Simulación en retroceso desde el punto de caída
     for (let min = 0; min <= minutosATrazar; min += 1) {
-      const time = new Date(epochDate.getTime() - min * 60000);
+      const time = new Date(epochDate.getTime() + min * 60000);
       const gmst = satellite.gstime(time);
       const pos = satellite.propagate(satrec, time);
 
@@ -226,17 +218,16 @@ window.mostrarTrayectoria = function(index) {
       if (isNaN(lat) || isNaN(lon) || Math.abs(lat) > 90) continue;
       lon = ((lon + 180) % 360 + 360) % 360 - 180;
       if (prevLon !== null) {
-        // Lógica para dividir la línea al cruzar el meridiano 180°
         let delta = Math.abs(lon - prevLon);
-        if (delta > 180) {
-          if (segment.length > 1) segments.push(segment.reverse()); // Invertir para trazar correctamente
+        if (delta > 30) {
+          if (segment.length > 1) segments.push(segment);
           segment = [];
         }
       }
       segment.push([lat, lon]);
       prevLon = lon;
     }
-    if (segment.length > 1) segments.push(segment.reverse()); // Invertir y agregar el último segmento
+    if (segment.length > 1) segments.push(segment);
 
     segments.forEach(seg => {
       L.polyline(seg, { color: "#3f51b5", weight: 2 }).addTo(mapaTrayectoria);
@@ -351,7 +342,18 @@ window.mostrarOrbita3D = function(index) {
 
   const modalElement = document.getElementById('modalOrbita3D');
   const modal = new bootstrap.Modal(modalElement);
-  
+
+  const modalBody = document.querySelector('#modalOrbita3D .modal-body');
+  const existingAlert = modalBody.querySelector('.alert');
+  if (existingAlert) { existingAlert.remove(); }
+  if (d.dias_diferencia > 0) {
+    const alerta = document.createElement('div');
+    alerta.className = 'alert alert-info py-1 px-2 mt-2';
+    alerta.style.fontSize = '0.8em';
+    alerta.innerHTML = `<strong>⚠️ Info:</strong> Los datos orbitales son de ${d.dias_diferencia} días antes de la caída. La órbita puede variar.`;
+    modalBody.prepend(alerta);
+  }
+  
   modalElement.addEventListener('shown.bs.modal', function onModalShown() {
     init(d);
     animate();
@@ -384,7 +386,6 @@ window.mostrarOrbita3D = function(index) {
     controls.dampingFactor = 0.25;
     controls.enableZoom = true;
 
-    // Se cambió la ruta de la textura a la carpeta local 'img'
     const textureLoader = new THREE.TextureLoader();
     const earthTexture = textureLoader.load('img/earthmap1k.jpg',
       function(texture) {
@@ -401,7 +402,7 @@ window.mostrarOrbita3D = function(index) {
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
-    
+    
     plotOrbit(d);
   }
 
@@ -412,7 +413,6 @@ window.mostrarOrbita3D = function(index) {
     const vueltas = 4;
     const minutosATrazar = periodoMin * vueltas;
 
-    // Usa la fecha del TLE como punto de referencia para la simulación
     const epochDate = new Date(Date.UTC(satrec.epochyr < 57 ? satrec.epochyr + 2000 : satrec.epochyr + 1900, 0, 1) + (satrec.epochdays - 1) * 24 * 60 * 60 * 1000);
 
     const points = [];
@@ -422,10 +422,9 @@ window.mostrarOrbita3D = function(index) {
       const pos = satellite.propagate(satrec, time);
 
       if (!pos || !pos.position) continue;
-      
+      
       const eciPos = pos.position;
-      
-      // Corregido: Intercambiar Y y Z para que coincidan con la orientación de Three.js (Y arriba)
+      
       points.push(new THREE.Vector3(eciPos.x, eciPos.z, -eciPos.y));
     }
 
