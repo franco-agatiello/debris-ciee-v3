@@ -168,10 +168,12 @@ window.mostrarTrayectoria = function(index) {
   if (!d.tle1 || !d.tle2) return alert("No hay TLE para este debris.");
   const diasDiferencia = d.dias_diferencia;
   const mensajeDiferencia = diasDiferencia !== undefined && diasDiferencia !== null
-    ? `Diferencia de fecha (TLE vs. Caída): <b>${diasDiferencia} días</b>`
+    ? `<div class="alert alert-warning p-2" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Advertencia:</strong> Diferencia de tiempo estimada entre la caída y los últimos datos orbitales (TLE): <b>${diasDiferencia} días</b></div>`
     : '';
-  const modalTitle = document.querySelector('#modalTrayectoria .modal-title');
-  modalTitle.innerHTML = `Trayectoria del debris <br><small class="text-muted" style="font-size:0.8em; font-weight:400">${mensajeDiferencia}</small>`;
+  const infoDiv = document.getElementById('trayectoriaInfo');
+  if (infoDiv) {
+    infoDiv.innerHTML = mensajeDiferencia;
+  }
   setTimeout(() => {
     if (mapaTrayectoria) { mapaTrayectoria.remove(); mapaTrayectoria = null; }
     mapaTrayectoria = L.map('mapTrayectoria').setView([d.lugar_caida.lat, d.lugar_caida.lon], 3);
