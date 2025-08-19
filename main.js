@@ -5,7 +5,7 @@ let debris = [];
 let mapa, capaPuntos, capaCalor, modo = "puntos";
 let leyendaPuntos, leyendaCalor;
 let mapaTrayectoria = null;
-const trayectoriaCache = {}; // Cache para las trayectorias
+const trayectoriaCache = {}; // Caché para las trayectorias
 
 const radioTierra = 6371; // km
 
@@ -16,7 +16,7 @@ const iconoAmarillo = L.icon({iconUrl:'https://raw.githubusercontent.com/pointhi
 
 async function cargarDatos() {
   const loadingOverlay = document.getElementById("loading-overlay");
-  loadingOverlay.style.display = 'flex';
+  loadingOverlay.style.display = 'flex';
   try {
     const resp = await fetch('data/debris.json');
     debris = await resp.json();
@@ -168,6 +168,7 @@ function initMapa() {
   ).addTo(mapa);
 }
 
+// Función debounce para optimizar el rendimiento de los filtros
 function debounce(func, timeout = 500) {
     let timer;
     return (...args) => {
@@ -188,6 +189,7 @@ function listeners(){
   document.getElementById("modo-calor").addEventListener("click",()=>{modo="calor"; actualizarMapaDebounced();});
 }
 
+// Función auxiliar para calcular la trayectoria y mantener el código limpio
 function calcularTrayectoria(d) {
     if (!d.tle1 || !d.tle2) return null;
 
