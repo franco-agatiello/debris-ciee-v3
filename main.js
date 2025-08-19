@@ -5,6 +5,7 @@ let debris = [];
 let mapa, capaPuntos, capaCalor, modo = "puntos";
 let leyendaPuntos, leyendaCalor;
 let mapaTrayectoria = null;
+const trayectoriaCache = {}; // Cache para las trayectorias
 
 const radioTierra = 6371; // km
 
@@ -14,10 +15,19 @@ const iconoRojo = L.icon({iconUrl:'https://raw.githubusercontent.com/pointhi/lea
 const iconoAmarillo = L.icon({iconUrl:'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png',iconSize:[18,29],iconAnchor:[9,29],popupAnchor:[1,-30]});
 
 async function cargarDatos() {
-  const resp = await fetch('data/debris.json');
-  debris = await resp.json();
-  poblarFiltros();
-  actualizarMapa();
+  const loadingOverlay = document.getElementById("loading-overlay");
+  loadingOverlay.style.display = 'flex';
+  try {
+    const resp = await fetch('data/debris.json');
+    debris = await resp.json();
+    poblarFiltros();
+    actualizarMapa();
+  } catch(e) {
+    console.error("Error al cargar los datos:", e);
+    alert("No se pudieron cargar los datos de debris.");
+  } finally {
+    loadingOverlay.style.display = 'none';
+  }
 }
 
 function poblarFiltros() {
@@ -31,7 +41,7 @@ function poblarFiltros() {
       e.preventDefault();
       document.getElementById('dropdownPaisBtn').textContent = this.textContent;
       document.getElementById('dropdownPaisBtn').dataset.value = this.dataset.value;
-      actualizarMapa();
+      actualizarMapaDebounced();
     });
   });
 }
@@ -89,12 +99,12 @@ function popupContenidoDebris(d,index){
 function actualizarMapa(){
   const datosFiltrados = filtrarDatos();
 
-  if(capaPuntos){capaPuntos.clearLayers(); try{mapa.removeLayer(capaPuntos);}catch(e){} capaPuntos=null;}
+  if(capaPuntos){mapa.removeLayer(capaPuntos); capaPuntos=null;}
   if(capaCalor && mapa.hasLayer(capaCalor)){mapa.removeLayer(capaCalor); capaCalor=null;}
   if(leyendaPuntos) leyendaPuntos.remove();
   if(leyendaCalor) leyendaCalor.remove();
   if(modo==="puntos"){
-    capaPuntos=L.layerGroup();
+    capaPuntos=L.markerClusterGroup(); // ¡Cambio aquí!
     datosFiltrados.forEach((d,i)=>{
       const marker=L.marker([d.lugar_caida.lat,d.lugar_caida.lon],{icon:marcadorPorFecha(d.fecha)})
         .bindPopup(popupContenidoDebris(d,i),{autoPan:true});
@@ -158,91 +168,107 @@ function initMapa() {
   ).addTo(mapa);
 }
 
+function debounce(func, timeout = 500) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            func.apply(this, args);
+        }, timeout);
+    };
+}
+
+const actualizarMapaDebounced = debounce(actualizarMapa);
+
 function listeners(){
   ["fecha-desde","fecha-hasta","inclinacion-min","inclinacion-max"].forEach(id=>{
-    document.getElementById(id).addEventListener("change",actualizarMapa);
+    document.getElementById(id).addEventListener("change",actualizarMapaDebounced);
   });
-  document.getElementById("modo-puntos").addEventListener("click",()=>{modo="puntos"; actualizarMapa();});
-  document.getElementById("modo-calor").addEventListener("click",()=>{modo="calor"; actualizarMapa();});
+  document.getElementById("modo-puntos").addEventListener("click",()=>{modo="puntos"; actualizarMapaDebounced();});
+  document.getElementById("modo-calor").addEventListener("click",()=>{modo="calor"; actualizarMapaDebounced();});
+}
+
+function calcularTrayectoria(d) {
+    if (!d.tle1 || !d.tle2) return null;
+
+    const satrec = satellite.twoline2satrec(d.tle1, d.tle2);
+    const meanMotion = satrec.no * 1440 / (2 * Math.PI);
+    const periodoMin = 1440 / meanMotion;
+    const vueltas = 4;
+    const minutosATrazar = periodoMin * vueltas;
+
+    const jday = satrec.epochdays;
+    const year = satrec.epochyr < 57 ? satrec.epochyr + 2000 : satrec.epochyr + 1900;
+    const epochDate = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0) + (jday - 1) * 24 * 60 * 60 * 1000);
+
+    let segments = [], segment = [], prevLon = null;
+    for (let min = 0; min <= minutosATrazar; min += 1) {
+        const time = new Date(epochDate.getTime() + min * 60000);
+        const gmst = satellite.gstime(time);
+        const pos = satellite.propagate(satrec, time);
+
+        if (!pos || !pos.position) continue;
+
+        const geo = satellite.eciToGeodetic(pos.position, gmst);
+        let lat = satellite.degreesLat(geo.latitude);
+        let lon = satellite.degreesLong(geo.longitude);
+
+        if (isNaN(lat) || isNaN(lon) || Math.abs(lat) > 90) continue;
+        lon = ((lon + 180) % 360 + 360) % 360 - 180;
+        if (prevLon !== null) {
+            let delta = Math.abs(lon - prevLon);
+            if (delta > 30) {
+                if (segment.length > 1) segments.push(segment);
+                segment = [];
+            }
+        }
+        segment.push([lat, lon]);
+        prevLon = lon;
+    }
+    if (segment.length > 1) segments.push(segment);
+    return segments;
+}
+
+function trazarTrayectoria(segments, d) {
+    if (mapaTrayectoria) { mapaTrayectoria.remove(); mapaTrayectoria = null; }
+    mapaTrayectoria = L.map('mapTrayectoria').setView([d.lugar_caida.lat, d.lugar_caida.lon], 3);
+
+    L.tileLayer(
+        'https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{-y}.png',
+        { minZoom: 1, maxZoom: 20 }
+    ).addTo(mapaTrayectoria);
+
+    segments.forEach(seg => {
+        L.polyline(seg, { color: "#3f51b5", weight: 2 }).addTo(mapaTrayectoria);
+    });
+    L.marker([d.lugar_caida.lat, d.lugar_caida.lon])
+        .addTo(mapaTrayectoria)
+        .bindPopup("Punto de caída")
+        .openPopup();
+    if (segments.length && segments[0].length > 1) {
+        let bounds = segments.flat();
+        mapaTrayectoria.fitBounds(bounds, {padding: [20, 20]});
+    } else {
+        mapaTrayectoria.setView([d.lugar_caida.lat, d.lugar_caida.lon], 3);
+    }
 }
 
 window.mostrarTrayectoria = function(index) {
   const d = filtrarDatos()[index];
   if (!d.tle1 || !d.tle2) return alert("No hay TLE para este debris.");
 
-  // Añadir el cartel de advertencia de días
-  const modalBody = document.querySelector('#modalTrayectoria .modal-body');
-  const existingAlert = modalBody.querySelector('.alert');
-  if (existingAlert) { existingAlert.remove(); }
-  if (d.dias_diferencia > 0) {
-    const alerta = document.createElement('div');
-    alerta.className = 'alert alert-info py-1 px-2 mt-2';
-    alerta.style.fontSize = '0.8em';
-    alerta.innerHTML = `<strong>⚠️ Info:</strong> Los datos orbitales son de ${d.dias_diferencia} días antes de la caída. La trayectoria puede variar.`;
-    modalBody.prepend(alerta);
-  }
-  
-  setTimeout(() => {
-    if (mapaTrayectoria) { mapaTrayectoria.remove(); mapaTrayectoria = null; }
-    mapaTrayectoria = L.map('mapTrayectoria').setView([d.lugar_caida.lat, d.lugar_caida.lon], 3);
-
-    // Capa base color de IGN Argentina en el modal también
-    L.tileLayer(
-      'https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{-y}.png',
-      { minZoom: 1, maxZoom: 20 }
-    ).addTo(mapaTrayectoria);
-
-    const satrec = satellite.twoline2satrec(d.tle1, d.tle2);
-
-    const meanMotion = satrec.no * 1440 / (2 * Math.PI); // satrec.no en rad/min
-    const periodoMin = 1440 / meanMotion;
-    const vueltas = 4;
-    const minutosATrazar = periodoMin * vueltas;
-
-    const jday = satrec.epochdays;
-    const year = satrec.epochyr < 57 ? satrec.epochyr + 2000 : satrec.epochyr + 1900;
-    const epochDate = new Date(Date.UTC(year, 0, 1) + (jday - 1) * 24 * 60 * 60 * 1000);
-
-    let segments = [], segment = [], prevLon = null;
-    for (let min = 0; min <= minutosATrazar; min += 1) {
-      const time = new Date(epochDate.getTime() + min * 60000);
-      const gmst = satellite.gstime(time);
-      const pos = satellite.propagate(satrec, time);
-
-      if (!pos || !pos.position) continue;
-
-      const geo = satellite.eciToGeodetic(pos.position, gmst);
-      let lat = satellite.degreesLat(geo.latitude);
-      let lon = satellite.degreesLong(geo.longitude);
-
-      if (isNaN(lat) || isNaN(lon) || Math.abs(lat) > 90) continue;
-      lon = ((lon + 180) % 360 + 360) % 360 - 180;
-      if (prevLon !== null) {
-        let delta = Math.abs(lon - prevLon);
-        if (delta > 30) {
-          if (segment.length > 1) segments.push(segment);
-          segment = [];
-        }
-      }
-      segment.push([lat, lon]);
-      prevLon = lon;
-    }
-    if (segment.length > 1) segments.push(segment);
-
-    segments.forEach(seg => {
-      L.polyline(seg, { color: "#3f51b5", weight: 2 }).addTo(mapaTrayectoria);
-    });
-    L.marker([d.lugar_caida.lat, d.lugar_caida.lon])
-      .addTo(mapaTrayectoria)
-      .bindPopup("Punto de caída")
-      .openPopup();
-    if (segments.length && segments[0].length > 1) {
-      let bounds = segments.flat();
-      mapaTrayectoria.fitBounds(bounds, {padding: [20, 20]});
+  const cacheKey = d.nombre + d.fecha;
+  if (trayectoriaCache[cacheKey]) {
+    trazarTrayectoria(trayectoriaCache[cacheKey], d);
+  } else {
+    const segments = calcularTrayectoria(d);
+    if (segments) {
+      trayectoriaCache[cacheKey] = segments;
+      trazarTrayectoria(segments, d);
     } else {
-      mapaTrayectoria.setView([d.lugar_caida.lat, d.lugar_caida.lon], 3);
+      alert("Error al calcular la trayectoria.");
     }
-  }, 300);
+  }
 
   const modal = new bootstrap.Modal(document.getElementById('modalTrayectoria'));
   modal.show();
@@ -342,18 +368,7 @@ window.mostrarOrbita3D = function(index) {
 
   const modalElement = document.getElementById('modalOrbita3D');
   const modal = new bootstrap.Modal(modalElement);
-
-  const modalBody = document.querySelector('#modalOrbita3D .modal-body');
-  const existingAlert = modalBody.querySelector('.alert');
-  if (existingAlert) { existingAlert.remove(); }
-  if (d.dias_diferencia > 0) {
-    const alerta = document.createElement('div');
-    alerta.className = 'alert alert-info py-1 px-2 mt-2';
-    alerta.style.fontSize = '0.8em';
-    alerta.innerHTML = `<strong>⚠️ Info:</strong> Los datos orbitales son de ${d.dias_diferencia} días antes de la caída. La órbita puede variar.`;
-    modalBody.prepend(alerta);
-  }
-  
+  
   modalElement.addEventListener('shown.bs.modal', function onModalShown() {
     init(d);
     animate();
@@ -386,6 +401,7 @@ window.mostrarOrbita3D = function(index) {
     controls.dampingFactor = 0.25;
     controls.enableZoom = true;
 
+    // Se cambió la ruta de la textura a la carpeta local 'img'
     const textureLoader = new THREE.TextureLoader();
     const earthTexture = textureLoader.load('img/earthmap1k.jpg',
       function(texture) {
@@ -402,7 +418,7 @@ window.mostrarOrbita3D = function(index) {
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
-    
+    
     plotOrbit(d);
   }
 
@@ -422,9 +438,10 @@ window.mostrarOrbita3D = function(index) {
       const pos = satellite.propagate(satrec, time);
 
       if (!pos || !pos.position) continue;
-      
+      
       const eciPos = pos.position;
-      
+      
+      // Corregido: Intercambiar Y y Z para que coincidan con la orientación de Three.js (Y arriba)
       points.push(new THREE.Vector3(eciPos.x, eciPos.z, -eciPos.y));
     }
 
