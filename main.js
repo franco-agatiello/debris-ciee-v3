@@ -311,7 +311,7 @@ window.mostrarOrbita3D = function(index) {
   }
   const diasDiferencia = d.dias_diferencia;
   const mensajeDiferencia = diasDiferencia !== undefined && diasDiferencia !== null
-    ? `Diferencia de fecha (TLE vs. Caída): <b>${diasDiferencia} días</b>`
+    ? `<div class="alert alert-warning p-2" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Advertencia:</strong> Diferencia de tiempo estimada entre la caída y los últimos datos orbitales (TLE): <b>${diasDiferencia} días</b></div>`
     : '';
   const infoDiv = document.getElementById('orbita3DInfo');
   if (infoDiv) {
