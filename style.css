@@ -219,3 +219,19 @@ main[style] {
 .leaflet-popup-content .btn-warning:hover {
   opacity: 0.8;
 }
+
+.alert-warning {
+    color: #856404;
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+    font-size: 0.9em;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.3rem;
+    display: inline-flex;
+    align-items: center;
+    text-align: left;
+    white-space: normal;
+}
+.alert-warning strong {
+  font-weight: bold;
+}
