@@ -225,7 +225,7 @@ main[style] {
     background-color: #fff3cd;
     border-color: #ffeeba;
     font-size: 0.9em;
-    padding: 0.5rem 0.75rem;
+    padding: 0.3rem 0.75rem; /* Ajuste en el padding vertical */
     border-radius: 0.3rem;
     display: inline-flex;
     align-items: center;
