@@ -1,128 +1,120 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard | Debris Espaciales</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.4.1/MarkerCluster.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.4.1/MarkerCluster.Default.css" />
-  <link rel="stylesheet" href="style.css"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard | Debris Espaciales</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <div class="container-fluid">
-    <div class="row flex-nowrap">
-      <aside class="col-md-2 col-lg-2 p-2 bg-light" id="sidebar">
-        <a href="https://www.ciee.unlp.edu.ar/" target="_blank" rel="noopener">
-          <img src="Captura de pantalla 2025-06-06 211123.png" alt="Logo Derbis" class="sidebar-logo mb-3">
-        </a>
-        <h4>Filtros</h4>
-        <form id="filter-form">
-          <label for="pais-dropdown">País de origen:</label>
-          <div class="dropdown mb-2" id="pais-dropdown">
-            <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="dropdownPaisBtn" data-bs-toggle="dropdown" aria-expanded="false">
-              Seleccionar país
-            </button>
-            <ul class="dropdown-menu w-100" aria-labelledby="dropdownPaisBtn" id="dropdownPaisMenu" style="max-height:220px; overflow-y:auto;">
-              </ul>
-          </div>
-          <label for="fecha-desde">Fecha desde:</label>
-          <input type="date" class="form-control mb-2" id="fecha-desde"/>
-          <label for="fecha-hasta">Fecha hasta:</label>
-          <input type="date" class="form-control mb-2" id="fecha-hasta"/>
-          <label for="inclinacion-min">Inclinación órbita (°):</label>
-          <div class="row g-1 mb-2">
-            <div class="col">
-              <input type="number" class="form-control" id="inclinacion-min" placeholder="Mín" min="0" max="180">
-            </div>
-            <div class="col">
-              <input type="number" class="form-control" id="inclinacion-max" placeholder="Máx" min="0" max="180">
-            </div>
-          </div>
-        </form>
-        <div class="mt-4 d-grid gap-2">
-          <button type="button" class="btn btn-primary" id="modo-puntos">
-            <i class="bi bi-geo-alt-fill me-1"></i>Puntos
-          </button>
-          <button type="button" class="btn btn-secondary" id="modo-calor">
-            <i class="bi bi-fire me-1"></i>Calor
-          </button>
-        </div>
-      </aside>
-      <main class="col-md-10 col-lg-10 p-0" style="min-height:100vh; position:relative;">
-        <div id="map"></div>
-        <div id="loading-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); display: none; justify-content: center; align-items: center; z-index: 10000;">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Cargando...</span>
+  <div class="container-fluid">
+    <div class="row flex-nowrap">
+      <aside class="col-md-2 col-lg-2 p-2 bg-light" id="sidebar">
+        <a href="https://www.ciee.unlp.edu.ar/" target="_blank" rel="noopener">
+          <img src="Captura de pantalla 2025-06-06 211123.png" alt="Logo Derbis" class="sidebar-logo mb-3">
+        </a>
+        <h4>Filtros</h4>
+        <form id="filter-form">
+          <label for="pais-dropdown">País de origen:</label>
+          <div class="dropdown mb-2" id="pais-dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="dropdownPaisBtn" data-bs-toggle="dropdown" aria-expanded="false">
+              Seleccionar país
+            </button>
+            <ul class="dropdown-menu w-100" aria-labelledby="dropdownPaisBtn" id="dropdownPaisMenu" style="max-height:220px; overflow-y:auto;">
+              </ul>
+          </div>
+          <label for="fecha-desde">Fecha desde:</label>
+          <input type="date" class="form-control mb-2" id="fecha-desde"/>
+          <label for="fecha-hasta">Fecha hasta:</label>
+          <input type="date" class="form-control mb-2" id="fecha-hasta"/>
+          <label for="inclinacion-min">Inclinación órbita (°):</label>
+          <div class="row g-1 mb-2">
+            <div class="col">
+              <input type="number" class="form-control" id="inclinacion-min" placeholder="Mín" min="0" max="180">
+            </div>
+            <div class="col">
+              <input type="number" class="form-control" id="inclinacion-max" placeholder="Máx" min="0" max="180">
+            </div>
+          </div>
+        </form>
+        <div class="mt-4 d-grid gap-2">
+          <button type="button" class="btn btn-primary" id="modo-puntos">
+            <i class="bi bi-geo-alt-fill me-1"></i>Puntos
+          </button>
+          <button type="button" class="btn btn-secondary" id="modo-calor">
+            <i class="bi bi-fire me-1"></i>Calor
+          </button>
+        </div>
+      </aside>
+      <main class="col-md-10 col-lg-10 p-0" style="min-height:100vh;">
+        <div id="map"></div>
+      </main>
+    </div>
+    <footer id="footer-ciee" class="d-none d-md-block">
+      <span>
+        © Copyright CIEE 2025 - All rights reserved. <a href="https://www.ciee.unlp.edu.ar/" target="_blank" rel="noopener">CIEE</a>
+      </span>
+    </footer>
+  </div>
+
+  <div class="modal fade" id="modalTrayectoria" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Trayectoria del debris</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="mapTrayectoria" style="width: 100%; height: 400px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalOrbitaPlanta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Órbita</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="orbitaPlantaInfo"></div>
+          <canvas id="canvasPlanta" width="400" height="400" style="width:100%;max-width:400px;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalOrbita3D" tabindex="-1" aria-labelledby="modalOrbita3DLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalOrbita3DLabel">Órbita 3D</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="orbita3DContainer" style="width: 100%; height: 600px;"></div>
             </div>
         </div>
-      </main>
-    </div>
-    <footer id="footer-ciee" class="d-none d-md-block">
-      <span>
-        © Copyright CIEE 2025 - All rights reserved. <a href="https://www.ciee.unlp.edu.ar/" target="_blank" rel="noopener">CIEE</a>
-      </span>
-    </footer>
-  </div>
+    </div>
+  </div>
 
-  <div class="modal fade" id="modalTrayectoria" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Trayectoria del debris</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div id="mapTrayectoria" style="width: 100%; height: 400px;"></div>
-        </div>
-        </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="modalOrbitaPlanta" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-md modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Órbita</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div id="orbitaPlantaInfo"></div>
-          <canvas id="canvasPlanta" width="400" height="400" style="width:100%;max-width:400px;"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="modalOrbita3D" tabindex="-1" aria-labelledby="modalOrbita3DLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalOrbita3DLabel">Órbita 3D</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="orbita3DContainer" style="width: 100%; height: 600px;"></div>
-            </div>
-        </div>
-    </div>
-  </div>
-
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
-      }
-    }
-  </script>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.4.1/leaflet.markercluster.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://unpkg.com/satellite.js/dist/satellite.min.js"></script>
-  <script src="main.js" type="module"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/satellite.js/dist/satellite.min.js"></script>
+  <script src="main.js" type="module"></script>
 </body>
 </html>
