@@ -86,7 +86,6 @@ function popupContenidoDebris(d,index){
     return contenido;
 }
 
-// Lógica de transición suave
 function actualizarMapa(){
     const datosFiltrados = filtrarDatos();
 
@@ -142,7 +141,6 @@ function actualizarMapa(){
     actualizarBotonesModo();
 }
 
-
 function mostrarLeyendaPuntos(){
     leyendaPuntos=L.control({position:'bottomright'});
     leyendaPuntos.onAdd=function(map){
@@ -174,7 +172,6 @@ function mostrarLeyendaCalor(){
 
 function initMapa() {
     mapa = L.map('map').setView([0, 0], 2);
-
     L.tileLayer(
         'https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{-y}.png',
         { minZoom: 1, maxZoom: 20 }
@@ -195,35 +192,28 @@ window.mostrarTrayectoria = function(index) {
     setTimeout(() => {
         if (mapaTrayectoria) { mapaTrayectoria.remove(); mapaTrayectoria = null; }
         mapaTrayectoria = L.map('mapTrayectoria').setView([d.lugar_caida.lat, d.lugar_caida.lon], 3);
-
         L.tileLayer(
             'https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{-y}.png',
             { minZoom: 1, maxZoom: 20 }
         ).addTo(mapaTrayectoria);
 
         const satrec = satellite.twoline2satrec(d.tle1, d.tle2);
-
         const meanMotion = satrec.no * 1440 / (2 * Math.PI);
         const periodoMin = 1440 / meanMotion;
         const vueltas = 4;
         const minutosATrazar = periodoMin * vueltas;
-
         const jday = satrec.epochdays;
         const year = satrec.epochyr < 57 ? satrec.epochyr + 2000 : satrec.epochyr + 1900;
         const epochDate = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0) + (jday - 1) * 24 * 60 * 60 * 1000);
-
         let segments = [], segment = [], prevLon = null;
         for (let min = 0; min <= minutosATrazar; min += 1) {
             const time = new Date(epochDate.getTime() + min * 60000);
             const gmst = satellite.gstime(time);
             const pos = satellite.propagate(satrec, time);
-
             if (!pos || !pos.position) continue;
-
             const geo = satellite.eciToGeodetic(pos.position, gmst);
             let lat = satellite.degreesLat(geo.latitude);
             let lon = satellite.degreesLong(geo.longitude);
-
             if (isNaN(lat) || isNaN(lon) || Math.abs(lat) > 90) continue;
             lon = ((lon + 180) % 360 + 360) % 360 - 180;
             if (prevLon !== null) {
@@ -237,7 +227,6 @@ window.mostrarTrayectoria = function(index) {
             prevLon = lon;
         }
         if (segment.length > 1) segments.push(segment);
-
         segments.forEach(seg => {
             L.polyline(seg, { color: "#3f51b5", weight: 2 }).addTo(mapaTrayectoria);
         });
@@ -260,7 +249,6 @@ window.mostrarTrayectoria = function(index) {
 window.mostrarOrbitaPlanta = function(index) {
     const d = filtrarDatos()[index];
     if (!d.tle1 || !d.tle2) return alert("No hay TLE para este debris.");
-
     const a = d.a ?? null;
     const apogeo = d.apogeo ?? null;
     const perigeo = d.perigeo ?? null;
@@ -270,7 +258,6 @@ window.mostrarOrbitaPlanta = function(index) {
     } else {
         excentricidad = null;
     }
-
     let infoHTML = `<strong>Parámetros orbitales:</strong><br>`;
     if (a) infoHTML += `Semi eje mayor (a): <b>${a.toFixed(2)}</b> km<br>`;
     if (apogeo) infoHTML += `Apogeo: <b>${apogeo.toFixed(2)}</b> km<br>`;
@@ -284,7 +271,6 @@ window.mostrarOrbitaPlanta = function(index) {
         const margen_canvas = 30;
         const c = a * excentricidad;
         const b = a * Math.sqrt(1 - excentricidad*excentricidad);
-
         const ancho_izq = a - c;
         const ancho_der = a + c;
         const ancho_total = ancho_izq + ancho_der;
@@ -292,17 +278,14 @@ window.mostrarOrbitaPlanta = function(index) {
         const escala_x = (canvas.width - 2 * margen_canvas) / (ancho_total);
         const escala_y = (canvas.height - 2 * margen_canvas) / (alto_total);
         const escala = Math.min(escala_x, escala_y);
-
         const xc = canvas.width / 2;
         const yc = canvas.height / 2;
         const focoX = xc + c * escala;
-
         ctx.beginPath();
         ctx.ellipse(xc, yc, a * escala, b * escala, 0, 0, 2*Math.PI);
         ctx.strokeStyle = "#ff9900";
         ctx.lineWidth = 3;
         ctx.stroke();
-
         const img = new Image();
         img.src = 'img/earth.png';
         img.onload = function() {
@@ -314,12 +297,10 @@ window.mostrarOrbitaPlanta = function(index) {
             ctx.clip();
             ctx.drawImage(img, focoX - earthRadiusPx, yc - earthRadiusPx, earthRadiusPx * 2, earthRadiusPx * 2);
             ctx.restore();
-
             ctx.fillStyle = "#ff0000";
             ctx.beginPath();
             ctx.arc(focoX + (a - c) * escala, yc, 5, 0, 2*Math.PI);
             ctx.fill();
-
             ctx.beginPath();
             ctx.arc(focoX - (a + c) * escala, yc, 5, 0, 2*Math.PI);
             ctx.fill();
@@ -338,7 +319,6 @@ window.mostrarOrbitaPlanta = function(index) {
             };
         };
     }
-
     const modal = new bootstrap.Modal(document.getElementById('modalOrbitaPlanta'));
     modal.show();
 };
@@ -348,41 +328,31 @@ window.mostrarOrbita3D = function(index) {
     if (!d.tle1 || !d.tle2) {
         return alert("No hay TLE para este debris.");
     }
-
     const modalElement = document.getElementById('modalOrbita3D');
     const modal = new bootstrap.Modal(modalElement);
-    
     modalElement.addEventListener('shown.bs.modal', function onModalShown() {
         init(d);
         animate();
         modalElement.removeEventListener('shown.bs.modal', onModalShown);
     });
-
     modal.show();
-
     let scene, camera, renderer, earth, controls, line;
-
     function init(d) {
         const container = document.getElementById('orbita3DContainer');
         if (!container) return;
-
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000010);
-
         camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 100000);
         camera.position.z = radioTierra * 3;
-
         renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
         renderer.setSize(container.clientWidth, container.clientHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         container.innerHTML = '';
         container.appendChild(renderer.domElement);
-
         controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.25;
         controls.enableZoom = true;
-
         const textureLoader = new THREE.TextureLoader();
         const earthTexture = textureLoader.load('img/earthmap1k.jpg',
             function(texture) {
@@ -396,43 +366,32 @@ window.mostrarOrbita3D = function(index) {
                 console.error('Error al cargar la textura de la Tierra:', error);
             }
         );
-
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambientLight);
-        
         plotOrbit(d);
     }
-    
-    // Animación de dibujo de órbita
     function plotOrbit(d) {
         const satrec = satellite.twoline2satrec(d.tle1, d.tle2);
         const meanMotion = satrec.no * 1440 / (2 * Math.PI);
         const periodoMin = 1440 / meanMotion;
         const vueltas = 4;
         const minutosATrazar = periodoMin * vueltas;
-
         const epochDate = new Date(Date.UTC(satrec.epochyr < 57 ? satrec.epochyr + 2000 : satrec.epochyr + 1900, 0, 1) + (satrec.epochdays - 1) * 24 * 60 * 60 * 1000);
-
         const fullPoints = [];
         for (let min = 0; min <= minutosATrazar; min += 1) {
             const time = new Date(epochDate.getTime() + min * 60000);
             const gmst = satellite.gstime(time);
             const pos = satellite.propagate(satrec, time);
-
             if (!pos || !pos.position) continue;
-            
             const eciPos = pos.position;
             fullPoints.push(new THREE.Vector3(eciPos.x, eciPos.z, -eciPos.y));
         }
-
         if (fullPoints.length > 1) {
             const geometry = new THREE.BufferGeometry();
             line = new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: 0xff9900 }));
             scene.add(line);
-
             let currentPointIndex = 0;
             const totalPoints = fullPoints.length;
-            
             function animateLine() {
                 if (currentPointIndex < totalPoints) {
                     const pointsToDraw = fullPoints.slice(0, currentPointIndex + 1);
@@ -444,7 +403,6 @@ window.mostrarOrbita3D = function(index) {
             animateLine();
         }
     }
-
     function animate() {
         requestAnimationFrame(animate);
         controls.update();
