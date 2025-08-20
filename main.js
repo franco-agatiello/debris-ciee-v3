@@ -277,6 +277,7 @@ window.mostrarOrbita3D = function(index) {
         const geometry = new THREE.SphereGeometry(radioTierra, 64, 64);
         const material = new THREE.MeshBasicMaterial({ map: texture });
         earth = new THREE.Mesh(geometry, material);
+        earth.rotation.x = (23.5 * Math.PI) / 180; // Inclinación axial de 23.5 grados
         scene.add(earth);
       },
       undefined,
@@ -320,9 +321,7 @@ window.mostrarOrbita3D = function(index) {
     requestAnimationFrame(animate);
     
     if (earth) {
-      const velocidadAngularTierra = 0.000072921; // rad/s
-      const tiempoDelta = 1 / 60; // Asumiendo 60 FPS
-      const rotacionPorFrame = velocidadAngularTierra * tiempoDelta * 60; 
+      const rotacionPorFrame = (2 * Math.PI) / 4 / 60; // 1 vuelta cada 4 segundos (2π rad / 4s)
       earth.rotation.y += rotacionPorFrame;
     }
     
