@@ -286,13 +286,29 @@ window.mostrarOrbita3D = function(index) {
       }
     );
     
-    // Añadir el plano de la eclíptica
-    const eclipticGeometry = new THREE.CircleGeometry(radioTierra * 1.5, 64); // Un círculo más grande que la Tierra
-    const eclipticMaterial = new THREE.MeshBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.2, side: THREE.DoubleSide });
-    const eclipticPlane = new THREE.Mesh(eclipticGeometry, eclipticMaterial);
-    eclipticPlane.rotation.x = -Math.PI / 2; // Para que el plano quede horizontal
-    eclipticPlane.position.z = 0; // Se asegura que el plano esté en el centro de la escena
-    scene.add(eclipticPlane);
+    // Añadir rejilla sutil para la eclíptica
+    const gridSize = radioTierra * 5; // Mayor para una sensación infinita
+    const gridHelper = new THREE.GridHelper(gridSize, 100, 0x555555, 0x333333);
+    const gridMaterial = gridHelper.material;
+    gridMaterial.transparent = true;
+    gridMaterial.opacity = 0.2;
+    gridHelper.rotation.x = Math.PI / 2; // Orientar la rejilla en el plano XY
+    scene.add(gridHelper);
+
+    // Crear un lienzo para el texto
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    context.font = 'Bold 40px Arial';
+    context.fillStyle = 'white';
+    context.fillText('Plano Orbital (Eclíptica)', 10, 50);
+
+    const texture = new THREE.Texture(canvas);
+    texture.needsUpdate = true;
+    const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: 0.8 });
+    const textSprite = new THREE.Sprite(spriteMaterial);
+    textSprite.scale.set(400, 100, 1);
+    textSprite.position.set(0, 0, 0); // Posicionarlo cerca de la rejilla
+    scene.add(textSprite);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
