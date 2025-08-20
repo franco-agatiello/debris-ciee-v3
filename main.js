@@ -5,6 +5,7 @@ let debris = [];
 let mapa, capaPuntos, capaCalor, modo = "puntos";
 let leyendaPuntos, leyendaCalor;
 let mapaTrayectoria = null;
+let legenda3D; // Nueva variable para la leyenda 3D
 
 const radioTierra = 6371; // km
 
@@ -248,8 +249,42 @@ window.mostrarOrbita3D = function(index) {
   }
   const modalElement = document.getElementById('modalOrbita3D');
   const modal = new bootstrap.Modal(modalElement);
-  let scene, camera, renderer, earth, controls, line;
+  let scene, camera, renderer, earth, controls, line, textPerigeo, textApogeo;
   
+  // Función para crear la leyenda con DOM y CSS
+  function crearLeyenda3D() {
+      const legendDiv = document.createElement('div');
+      legendDiv.id = 'leyenda-3d';
+      legendDiv.style.position = 'absolute';
+      legendDiv.style.top = '10px';
+      legendDiv.style.right = '10px';
+      legendDiv.style.background = 'rgba(0, 0, 0, 0.5)';
+      legendDiv.style.color = 'white';
+      legendDiv.style.padding = '10px';
+      legendDiv.style.borderRadius = '5px';
+      legendDiv.style.fontFamily = 'Arial, sans-serif';
+      legendDiv.innerHTML = `
+          <div>
+              <span style="display:inline-block; width:15px; height:2px; background:#ff9900; margin-right:5px; vertical-align:middle;"></span>
+              <span>Órbita</span>
+          </div>
+          <div>
+              <span style="display:inline-block; width:15px; height:15px; border:1px solid rgba(136, 136, 136, 0.4); margin-right:5px; vertical-align:middle;"></span>
+              <span>Plano Orbital (Eclíptica)</span>
+          </div>
+      `;
+      document.body.appendChild(legendDiv);
+      return legendDiv;
+  }
+
+  // Función para remover la leyenda
+  function removerLeyenda3D() {
+      const legend = document.getElementById('leyenda-3d');
+      if (legend) {
+          legend.remove();
+      }
+  }
+
   function init(d) {
     const container = document.getElementById('orbita3DContainer');
     if (!container) return;
@@ -286,34 +321,53 @@ window.mostrarOrbita3D = function(index) {
       }
     );
     
-    // Añadir rejilla sutil para la eclíptica
-    const gridSize = radioTierra * 5; // Mayor para una sensación infinita
-    const gridHelper = new THREE.GridHelper(gridSize, 100, 0x555555, 0x333333);
-    const gridMaterial = gridHelper.material;
-    gridMaterial.transparent = true;
-    gridMaterial.opacity = 0.2;
-    gridHelper.rotation.x = Math.PI / 2; // Orientar la rejilla en el plano XY
-    scene.add(gridHelper);
+    // Añadir el plano de la eclíptica (rejilla)
+    const eclipticSize = radioTierra * 3;
+    const divisions = 50;
+    const gridGeometry = new THREE.PlaneGeometry(eclipticSize, eclipticSize, divisions, divisions);
+    const gridMaterial = new THREE.MeshBasicMaterial({ color: 0x888888, transparent: true, opacity: 0.1, side: THREE.DoubleSide, wireframe: true });
+    const eclipticPlane = new THREE.Mesh(gridGeometry, gridMaterial);
+    eclipticPlane.rotation.x = -Math.PI / 2;
+    scene.add(eclipticPlane);
 
-    // Crear un lienzo para el texto
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    context.font = 'Bold 40px Arial';
-    context.fillStyle = 'white';
-    context.fillText('Plano Orbital (Eclíptica)', 10, 50);
+    // Leyenda de perigeo y apogeo
+    const satrec = satellite.twoline2satrec(d.tle1, d.tle2);
+    const perigeo = satrec.perigee + radioTierra;
+    const apogeo = satrec.apogee + radioTierra;
 
-    const texture = new THREE.Texture(canvas);
-    texture.needsUpdate = true;
-    const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: 0.8 });
-    const textSprite = new THREE.Sprite(spriteMaterial);
-    textSprite.scale.set(400, 100, 1);
-    textSprite.position.set(0, 0, 0); // Posicionarlo cerca de la rejilla
-    scene.add(textSprite);
+    // Crear sprite para el texto de perigeo
+    const canvasPerigeo = document.createElement('canvas');
+    const contextPerigeo = canvasPerigeo.getContext('2d');
+    contextPerigeo.font = 'Bold 40px Arial';
+    contextPerigeo.fillStyle = 'yellow';
+    contextPerigeo.fillText('Perigeo', 10, 50);
+    const texturePerigeo = new THREE.Texture(canvasPerigeo);
+    texturePerigeo.needsUpdate = true;
+    const spriteMaterialPerigeo = new THREE.SpriteMaterial({ map: texturePerigeo, transparent: true, opacity: 0.8 });
+    textPerigeo = new THREE.Sprite(spriteMaterialPerigeo);
+    textPerigeo.scale.set(400, 100, 1);
+    textPerigeo.position.set(0, 0, -perigeo / 100);
+    scene.add(textPerigeo);
 
+    // Crear sprite para el texto de apogeo
+    const canvasApogeo = document.createElement('canvas');
+    const contextApogeo = canvasApogeo.getContext('2d');
+    contextApogeo.font = 'Bold 40px Arial';
+    contextApogeo.fillStyle = 'red';
+    contextApogeo.fillText('Apogeo', 10, 50);
+    const textureApogeo = new THREE.Texture(canvasApogeo);
+    textureApogeo.needsUpdate = true;
+    const spriteMaterialApogeo = new THREE.SpriteMaterial({ map: textureApogeo, transparent: true, opacity: 0.8 });
+    textApogeo = new THREE.Sprite(spriteMaterialApogeo);
+    textApogeo.scale.set(400, 100, 1);
+    textApogeo.position.set(0, 0, apogeo / 100);
+    scene.add(textApogeo);
+    
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
     
     plotOrbit(d);
+    legenda3D = crearLeyenda3D();
   }
   
   function plotOrbit(d) {
@@ -357,6 +411,11 @@ window.mostrarOrbita3D = function(index) {
     init(d);
     animate();
     modalElement.removeEventListener('shown.bs.modal', onModalShown);
+  });
+  
+  modalElement.addEventListener('hidden.bs.modal', function onModalHidden() {
+      removerLeyenda3D();
+      modalElement.removeEventListener('hidden.bs.modal', onModalHidden);
   });
   
   modal.show();
