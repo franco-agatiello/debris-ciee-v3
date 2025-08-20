@@ -167,9 +167,11 @@ window.mostrarTrayectoria = function(index) {
   const d = filtrarDatos()[index];
   if (!d.tle1 || !d.tle2) return alert("No hay TLE para este debris.");
   const diasDiferencia = d.dias_diferencia;
-  const mensajeDiferencia = diasDiferencia !== undefined && diasDiferencia !== null
-    ? `<div class="alert alert-warning p-2" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Advertencia:</strong> Diferencia de tiempo estimada entre la caída y los últimos datos orbitales (TLE): <b>${diasDiferencia} días</b></div>`
-    : '';
+  let mensajeDiferencia = '';
+  if (diasDiferencia !== undefined && diasDiferencia !== null) {
+    const horas = (diasDiferencia * 24).toFixed(2);
+    mensajeDiferencia = `<div class="alert alert-warning p-2" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Advertencia:</strong> Diferencia de tiempo estimada entre la caída y los últimos datos orbitales (TLE): <b>${horas} horas</b></div>`;
+  }
   const infoDiv = document.getElementById('trayectoriaInfo');
   if (infoDiv) {
     infoDiv.innerHTML = mensajeDiferencia;
@@ -312,9 +314,11 @@ window.mostrarOrbita3D = function(index) {
     return alert("No hay TLE para este debris.");
   }
   const diasDiferencia = d.dias_diferencia;
-  const mensajeDiferencia = diasDiferencia !== undefined && diasDiferencia !== null
-    ? `<div class="alert alert-warning p-2" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Advertencia:</strong> Diferencia de tiempo estimada entre la caída y los últimos datos orbitales (TLE): <b>${diasDiferencia} días</b></div>`
-    : '';
+  let mensajeDiferencia = '';
+  if (diasDiferencia !== undefined && diasDiferencia !== null) {
+    const horas = (diasDiferencia * 24).toFixed(2);
+    mensajeDiferencia = `<div class="alert alert-warning p-2" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Advertencia:</strong> Diferencia de tiempo estimada entre la caída y los últimos datos orbitales (TLE): <b>${horas} horas</b></div>`;
+  }
   const infoDiv = document.getElementById('orbita3DInfo');
   if (infoDiv) {
     infoDiv.innerHTML = mensajeDiferencia;
