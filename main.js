@@ -5,7 +5,6 @@ let debris = [];
 let mapa, capaPuntos, capaCalor, modo = "puntos";
 let leyendaPuntos, leyendaCalor;
 let mapaTrayectoria = null;
-let legenda3D; // Nueva variable para la leyenda 3D
 
 const radioTierra = 6371; // km
 
@@ -251,8 +250,8 @@ window.mostrarOrbita3D = function(index) {
   const modal = new bootstrap.Modal(modalElement);
   let scene, camera, renderer, earth, controls, line, textPerigeo, textApogeo;
   
-  // Función para crear la leyenda con DOM y CSS
-  function crearLeyenda3D() {
+  // Función para crear la leyenda con DOM y CSS, ahora dentro del contenedor de la animación
+  function crearLeyenda3D(container) {
       const legendDiv = document.createElement('div');
       legendDiv.id = 'leyenda-3d';
       legendDiv.style.position = 'absolute';
@@ -273,7 +272,7 @@ window.mostrarOrbita3D = function(index) {
               <span>Plano Orbital (Eclíptica)</span>
           </div>
       `;
-      document.body.appendChild(legendDiv);
+      container.appendChild(legendDiv);
       return legendDiv;
   }
 
@@ -367,7 +366,8 @@ window.mostrarOrbita3D = function(index) {
     scene.add(ambientLight);
     
     plotOrbit(d);
-    legenda3D = crearLeyenda3D();
+    // Llamar a la función para crear la leyenda, pasando el contenedor
+    legenda3D = crearLeyenda3D(container);
   }
   
   function plotOrbit(d) {
