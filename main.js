@@ -255,12 +255,12 @@ window.mostrarOrbita3D = function(index) {
       const legendDiv = document.createElement('div');
       legendDiv.id = 'leyenda-3d';
       legendDiv.style.position = 'absolute';
-      legendDiv.style.bottom = '10px';
-      legendDiv.style.right = '10px';
+      legendDiv.style.bottom = '20px'; // Aumentado el margen inferior
+      legendDiv.style.right = '20px'; // Aumentado el margen derecho
       legendDiv.style.background = 'rgba(0, 0, 0, 0.5)';
       legendDiv.style.color = 'white';
-      legendDiv.style.padding = '10px';
-      legendDiv.style.borderRadius = '5px';
+      legendDiv.style.padding = '15px'; // Aumentado el padding
+      legendDiv.style.borderRadius = '8px'; // Aumentado el radio del borde
       legendDiv.style.fontFamily = 'Arial, sans-serif';
       legendDiv.innerHTML = `
           <div>
