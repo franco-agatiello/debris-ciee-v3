@@ -248,7 +248,9 @@ window.mostrarOrbita3D = function(index) {
   }
   const modalElement = document.getElementById('modalOrbita3D');
   const modal = new bootstrap.Modal(modalElement);
-  let scene, camera, renderer, earth, controls, line, textPerigeo, textApogeo;
+  
+  // Declara las variables al principio de la función para que sean accesibles en todas las anidadas
+  let scene, camera, renderer, earth, controls, line, textPerigeo, textApogeo, legenda3D;
   
   // Función para crear la leyenda con DOM y CSS, ahora dentro del contenedor de la animación
   function crearLeyenda3D(container) {
@@ -414,7 +416,9 @@ window.mostrarOrbita3D = function(index) {
   });
   
   modalElement.addEventListener('hidden.bs.modal', function onModalHidden() {
-      removerLeyenda3D();
+      if (legenda3D) { 
+          removerLeyenda3D();
+      }
       modalElement.removeEventListener('hidden.bs.modal', onModalHidden);
   });
   
