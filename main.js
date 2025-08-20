@@ -269,7 +269,7 @@ window.mostrarOrbita3D = function(index) {
           </div>
           <div>
               <span style="display:inline-block; width:15px; height:2px; background:rgba(255, 255, 255, 0.5); margin-right:5px; vertical-align:middle;"></span>
-              <span>Eclíptica</span>
+              <span>Plano de la Eclíptica</span>
           </div>
       `;
       container.appendChild(legendDiv);
@@ -310,7 +310,7 @@ window.mostrarOrbita3D = function(index) {
         const geometry = new THREE.SphereGeometry(radioTierra, 64, 64);
         const material = new THREE.MeshBasicMaterial({ map: texture });
         earth = new THREE.Mesh(geometry, material);
-        earth.rotation.x = (23.5 * Math.PI) / 180;
+        // La Tierra se mantiene sin inclinación
         scene.add(earth);
       },
       undefined,
@@ -324,12 +324,13 @@ window.mostrarOrbita3D = function(index) {
     const gridGeometry = new THREE.PlaneGeometry(eclipticSize, eclipticSize, divisions, divisions);
     const gridMaterial = new THREE.MeshBasicMaterial({ color: 0x888888, transparent: true, opacity: 0.1, side: THREE.DoubleSide, wireframe: true });
     const eclipticPlane = new THREE.Mesh(gridGeometry, gridMaterial);
-    eclipticPlane.rotation.x = -Math.PI / 2;
+    // Se inclina la rejilla para representar la eclíptica
+    eclipticPlane.rotation.x = -23.5 * Math.PI / 180;
     scene.add(eclipticPlane);
 
     const satrec = satellite.twoline2satrec(d.tle1, d.tle2);
     const perigeo = satrec.perigee + radioTierra;
-    const apogeo = satrec.apogeo + radioTierra;
+    const apogeo = satrec.apogee + radioTierra;
 
     const canvasPerigeo = document.createElement('canvas');
     const contextPerigeo = canvasPerigeo.getContext('2d');
