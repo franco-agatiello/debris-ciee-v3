@@ -255,12 +255,12 @@ window.mostrarOrbita3D = function(index) {
       const legendDiv = document.createElement('div');
       legendDiv.id = 'leyenda-3d';
       legendDiv.style.position = 'absolute';
-      legendDiv.style.bottom = '20px'; // Aumentado el margen inferior
-      legendDiv.style.right = '20px'; // Aumentado el margen derecho
+      legendDiv.style.bottom = '20px';
+      legendDiv.style.right = '20px';
       legendDiv.style.background = 'rgba(0, 0, 0, 0.5)';
       legendDiv.style.color = 'white';
-      legendDiv.style.padding = '15px'; // Aumentado el padding
-      legendDiv.style.borderRadius = '8px'; // Aumentado el radio del borde
+      legendDiv.style.padding = '15px';
+      legendDiv.style.borderRadius = '8px';
       legendDiv.style.fontFamily = 'Arial, sans-serif';
       legendDiv.innerHTML = `
           <div>
@@ -268,7 +268,7 @@ window.mostrarOrbita3D = function(index) {
               <span>Órbita de Debris</span>
           </div>
           <div>
-              <span style="display:inline-block; width:15px; height:15px; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><rect width="100%" height="100%" stroke="rgba(255, 255, 255, 0.8)" stroke-width="1" fill="none"/></svg>') no-repeat center center; background-size: contain; margin-right:5px; vertical-align:middle;"></span>
+              <span style="display:inline-block; width:15px; height:15px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Crect width='100%25' height='100%25' stroke='rgba(255, 255, 255, 0.8)' stroke-width='1' fill='none'/%3E%3C/svg%3E") no-repeat center center; background-size: contain; margin-right:5px; vertical-align:middle;"></span>
               <span>Eclíptica</span>
           </div>
       `;
