@@ -286,6 +286,14 @@ window.mostrarOrbita3D = function(index) {
       }
     );
     
+    // Añadir el plano de la eclíptica
+    const eclipticGeometry = new THREE.CircleGeometry(radioTierra * 1.5, 64); // Un círculo más grande que la Tierra
+    const eclipticMaterial = new THREE.MeshBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.2, side: THREE.DoubleSide });
+    const eclipticPlane = new THREE.Mesh(eclipticGeometry, eclipticMaterial);
+    eclipticPlane.rotation.x = -Math.PI / 2; // Para que el plano quede horizontal
+    eclipticPlane.position.z = 0; // Se asegura que el plano esté en el centro de la escena
+    scene.add(eclipticPlane);
+
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
     
