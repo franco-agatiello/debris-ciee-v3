@@ -249,15 +249,13 @@ window.mostrarOrbita3D = function(index) {
   const modalElement = document.getElementById('modalOrbita3D');
   const modal = new bootstrap.Modal(modalElement);
   
-  // Declara las variables al principio de la función para que sean accesibles en todas las anidadas
   let scene, camera, renderer, earth, controls, line, textPerigeo, textApogeo, legenda3D;
   
-  // Función para crear la leyenda con DOM y CSS, ahora dentro del contenedor de la animación
   function crearLeyenda3D(container) {
       const legendDiv = document.createElement('div');
       legendDiv.id = 'leyenda-3d';
       legendDiv.style.position = 'absolute';
-      legendDiv.style.top = '10px';
+      legendDiv.style.bottom = '10px';
       legendDiv.style.right = '10px';
       legendDiv.style.background = 'rgba(0, 0, 0, 0.5)';
       legendDiv.style.color = 'white';
@@ -267,18 +265,17 @@ window.mostrarOrbita3D = function(index) {
       legendDiv.innerHTML = `
           <div>
               <span style="display:inline-block; width:15px; height:2px; background:#ff9900; margin-right:5px; vertical-align:middle;"></span>
-              <span>Órbita</span>
+              <span>Órbita de Debris</span>
           </div>
           <div>
-              <span style="display:inline-block; width:15px; height:15px; border:1px solid rgba(136, 136, 136, 0.4); margin-right:5px; vertical-align:middle;"></span>
-              <span>Plano Orbital (Eclíptica)</span>
+              <span style="display:inline-block; width:15px; height:15px; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><rect width="100%" height="100%" stroke="rgba(255, 255, 255, 0.8)" stroke-width="1" fill="none"/></svg>') no-repeat center center; background-size: contain; margin-right:5px; vertical-align:middle;"></span>
+              <span>Eclíptica</span>
           </div>
       `;
       container.appendChild(legendDiv);
       return legendDiv;
   }
 
-  // Función para remover la leyenda
   function removerLeyenda3D() {
       const legend = document.getElementById('leyenda-3d');
       if (legend) {
@@ -313,7 +310,7 @@ window.mostrarOrbita3D = function(index) {
         const geometry = new THREE.SphereGeometry(radioTierra, 64, 64);
         const material = new THREE.MeshBasicMaterial({ map: texture });
         earth = new THREE.Mesh(geometry, material);
-        earth.rotation.x = (23.5 * Math.PI) / 180; // Inclinación axial de 23.5 grados
+        earth.rotation.x = (23.5 * Math.PI) / 180;
         scene.add(earth);
       },
       undefined,
@@ -322,7 +319,6 @@ window.mostrarOrbita3D = function(index) {
       }
     );
     
-    // Añadir el plano de la eclíptica (rejilla)
     const eclipticSize = radioTierra * 3;
     const divisions = 50;
     const gridGeometry = new THREE.PlaneGeometry(eclipticSize, eclipticSize, divisions, divisions);
@@ -331,12 +327,10 @@ window.mostrarOrbita3D = function(index) {
     eclipticPlane.rotation.x = -Math.PI / 2;
     scene.add(eclipticPlane);
 
-    // Leyenda de perigeo y apogeo
     const satrec = satellite.twoline2satrec(d.tle1, d.tle2);
     const perigeo = satrec.perigee + radioTierra;
     const apogeo = satrec.apogee + radioTierra;
 
-    // Crear sprite para el texto de perigeo
     const canvasPerigeo = document.createElement('canvas');
     const contextPerigeo = canvasPerigeo.getContext('2d');
     contextPerigeo.font = 'Bold 40px Arial';
@@ -350,7 +344,6 @@ window.mostrarOrbita3D = function(index) {
     textPerigeo.position.set(0, 0, -perigeo / 100);
     scene.add(textPerigeo);
 
-    // Crear sprite para el texto de apogeo
     const canvasApogeo = document.createElement('canvas');
     const contextApogeo = canvasApogeo.getContext('2d');
     contextApogeo.font = 'Bold 40px Arial';
@@ -368,7 +361,6 @@ window.mostrarOrbita3D = function(index) {
     scene.add(ambientLight);
     
     plotOrbit(d);
-    // Llamar a la función para crear la leyenda, pasando el contenedor
     legenda3D = crearLeyenda3D(container);
   }
   
@@ -401,7 +393,7 @@ window.mostrarOrbita3D = function(index) {
     requestAnimationFrame(animate);
     
     if (earth) {
-      const rotacionPorFrame = (2 * Math.PI) / 4 / 60; // 1 vuelta cada 4 segundos (2π rad / 4s)
+      const rotacionPorFrame = (2 * Math.PI) / 4 / 60;
       earth.rotation.y += rotacionPorFrame;
     }
     
