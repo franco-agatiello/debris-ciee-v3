@@ -257,7 +257,7 @@ window.mostrarOrbita3D = function(index) {
       legendDiv.style.position = 'absolute';
       legendDiv.style.bottom = '20px';
       legendDiv.style.right = '20px';
-      legendDiv.style.background = 'rgba(0, 0, 255, 0.25)';
+      legendDiv.style.background = 'rgba(0, 0, 0, 0.5)';
       legendDiv.style.color = 'white';
       legendDiv.style.padding = '15px';
       legendDiv.style.borderRadius = '8px';
@@ -268,7 +268,7 @@ window.mostrarOrbita3D = function(index) {
               <span>Órbita de Debris</span>
           </div>
           <div>
-              <span style="display:inline-block; width:15px; height:15px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Crect width='100%25' height='100%25' stroke='rgba(255, 255, 255, 0.8)' stroke-width='1' fill='none'/%3E%3C/svg%3E") no-repeat center center; background-size: contain; margin-right:5px; vertical-align:middle;"></span>
+              <span style="display:inline-block; width:15px; height:2px; background:rgba(255, 255, 255, 0.5); margin-right:5px; vertical-align:middle;"></span>
               <span>Eclíptica</span>
           </div>
       `;
@@ -329,7 +329,7 @@ window.mostrarOrbita3D = function(index) {
 
     const satrec = satellite.twoline2satrec(d.tle1, d.tle2);
     const perigeo = satrec.perigee + radioTierra;
-    const apogeo = satrec.apogee + radioTierra;
+    const apogeo = satrec.apogeo + radioTierra;
 
     const canvasPerigeo = document.createElement('canvas');
     const contextPerigeo = canvasPerigeo.getContext('2d');
