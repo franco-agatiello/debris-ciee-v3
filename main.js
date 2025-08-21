@@ -357,8 +357,8 @@ window.mostrarOrbita3D = function(index) {
         const geometry = new THREE.SphereGeometry(radioTierra, 64, 64);
         const material = new THREE.MeshBasicMaterial({ map: texture });
         earth = new THREE.Mesh(geometry, material);
-        // NUEVO: Inclinamos la Tierra 23.4 grados sobre el eje Z (0.4084 radianes)
-        earth.rotation.z = -0.4084;
+        // NUEVO: Inclinamos la Tierra 23.4 grados sobre el eje X (0.4084 radianes)
+        earth.rotation.x = 0.4084;
         scene.add(earth);
       },
       undefined,
@@ -402,9 +402,9 @@ window.mostrarOrbita3D = function(index) {
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
       line = new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: 0xff9900 }));
       
-      // NUEVO: Inclinamos la órbita 23.4 grados sobre el eje Z (0.4084 radianes)
-      // Esto la alinea con el plano de la eclíptica.
-      line.rotation.z = -0.4084;
+      // NUEVO: Inclinamos la órbita 23.4 grados sobre el eje X (0.4084 radianes)
+      // Esto la alinea con la inclinación axial de la Tierra.
+      line.rotation.x = 0.4084;
       
       scene.add(line);
     }
