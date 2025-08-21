@@ -389,6 +389,9 @@ import * as THREE from 'three';
    } 
    function animate() { 
      requestAnimationFrame(animate); 
+    if (earth) {
+      earth.rotation.y += 0.01;
+    }
      controls.update(); 
      renderer.render(scene, camera); 
    } 
