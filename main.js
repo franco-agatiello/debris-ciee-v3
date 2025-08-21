@@ -357,7 +357,8 @@ window.mostrarOrbita3D = function(index) {
         const geometry = new THREE.SphereGeometry(radioTierra, 64, 64);
         const material = new THREE.MeshBasicMaterial({ map: texture });
         earth = new THREE.Mesh(geometry, material);
-        // NUEVO: La tierra se mantiene vertical
+        // NUEVO: Inclinamos la Tierra 23.4 grados en sentido horario
+        earth.rotation.z = -0.4084;
         scene.add(earth);
       },
       undefined,
@@ -369,13 +370,13 @@ window.mostrarOrbita3D = function(index) {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
-    // NUEVO: Creamos la malla de la cuadrícula, que representa el plano horizontal de la eclíptica.
+    // Mantenemos la malla vertical
     const size = radioTierra * 3;
     const divisions = 20;
     const gridHelper = new THREE.GridHelper(size, divisions, 0x555555, 0x555555);
     
-    // Rotamos la cuadrícula 90 grados para que quede en el plano vertical (XY).
-    gridHelper.rotation.y = Math.PI / 2;
+    // Rotamos la cuadrícula 90 grados para que quede en el plano vertical (XZ)
+    gridHelper.rotation.x = Math.PI / 2;
     scene.add(gridHelper);
 
     plotOrbit(d);
@@ -401,7 +402,9 @@ window.mostrarOrbita3D = function(index) {
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
       line = new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: 0xff9900 }));
       
-      // Mantenemos la órbita sin rotación para que se visualice correctamente con el plano vertical.
+      // NUEVO: Inclinamos la órbita 23.4 grados en sentido horario
+      line.rotation.z = -0.4084;
+      
       scene.add(line);
     }
   }
