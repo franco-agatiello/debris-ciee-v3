@@ -332,6 +332,8 @@ window.mostrarOrbita3D = function(index) {
   });
   modal.show();
   let scene, camera, renderer, earth, controls, line;
+  let lastTime = 0; // NUEVO: Variable para el tiempo
+
   function init(d) {
     const container = document.getElementById('orbita3DContainer');
     if (!container) return;
@@ -348,12 +350,15 @@ window.mostrarOrbita3D = function(index) {
     controls.enableDamping = true;
     controls.dampingFactor = 0.25;
     controls.enableZoom = true;
+
     const textureLoader = new THREE.TextureLoader();
     const earthTexture = textureLoader.load('img/earthmap1k.jpg',
       function(texture) {
         const geometry = new THREE.SphereGeometry(radioTierra, 64, 64);
         const material = new THREE.MeshBasicMaterial({ map: texture });
         earth = new THREE.Mesh(geometry, material);
+        // Rotar la Tierra 23.4 grados (0.4084 radianes) sobre el eje X
+        earth.rotation.x = -0.4084;
         scene.add(earth);
       },
       undefined,
@@ -361,10 +366,19 @@ window.mostrarOrbita3D = function(index) {
         console.error('Error al cargar la textura de la Tierra:', error);
       }
     );
+
+    // Añadir una malla (GridHelper) al plano del ecuador
+    const size = radioTierra * 3;
+    const divisions = 20;
+    const gridHelper = new THREE.GridHelper(size, divisions, 0x555555, 0x555555);
+    gridHelper.rotation.x = Math.PI / 2; // Rotar 90 grados para que quede horizontal
+    scene.add(gridHelper);
+
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
     plotOrbit(d);
   }
+
   function plotOrbit(d) {
     const satrec = satellite.twoline2satrec(d.tle1, d.tle2);
     const meanMotion = satrec.no * 1440 / (2 * Math.PI);
@@ -387,10 +401,19 @@ window.mostrarOrbita3D = function(index) {
       scene.add(line);
     }
   }
-  function animate() {
+
+  function animate(time) {
     requestAnimationFrame(animate);
+
+    // NUEVO: Rotación de la Tierra
+    const deltaTime = (time - lastTime) / 1000;
+    if (earth) {
+      earth.rotation.y += (Math.PI * 2 / 5) * deltaTime;
+    }
+
     controls.update();
     renderer.render(scene, camera);
+    lastTime = time;
   }
 };
 
