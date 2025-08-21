@@ -370,12 +370,12 @@ window.mostrarOrbita3D = function(index) {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
-    // NUEVO: Creamos la malla de la cuadrícula, que representa el plano horizontal.
+    // NUEVO: Creamos la malla de la cuadrícula, que representa el plano horizontal de la eclíptica.
     const size = radioTierra * 3;
     const divisions = 20;
     const gridHelper = new THREE.GridHelper(size, divisions, 0x555555, 0x555555);
     
-    // Mantenemos la cuadrícula en su orientación por defecto (plano XZ).
+    // Mantenemos la malla en su posición por defecto, el plano XZ.
     scene.add(gridHelper);
 
     plotOrbit(d);
@@ -395,13 +395,14 @@ window.mostrarOrbita3D = function(index) {
       const pos = satellite.propagate(satrec, time);
       if (!pos || !pos.position) continue;
       const eciPos = pos.position;
-      points.push(new THREE.Vector3(eciPos.x, eciPos.z, -eciPos.y));
+      points.push(new THREE.Vector3(eciPos.x, eciPos.y, eciPos.z));
     }
     if (points.length > 1) {
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
       line = new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: 0xff9900 }));
       
       // NUEVO: Inclinamos la órbita 23.4 grados sobre el eje Z (0.4084 radianes)
+      // Esto la alinea con la inclinación axial de la Tierra.
       line.rotation.z = -0.4084;
       
       scene.add(line);
