@@ -340,8 +340,7 @@ window.mostrarOrbita3D = function(index) {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000010);
     camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 100000);
-    // NUEVO: Ajusta la posición de la cámara para una vista superior.
-    camera.position.set(radioTierra * 3, radioTierra * 3, radioTierra * 3);
+    camera.position.z = radioTierra * 3;
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -358,7 +357,7 @@ window.mostrarOrbita3D = function(index) {
         const geometry = new THREE.SphereGeometry(radioTierra, 64, 64);
         const material = new THREE.MeshBasicMaterial({ map: texture });
         earth = new THREE.Mesh(geometry, material);
-        earth.rotation.x = 0.4084;
+        // NUEVO: La tierra se mantiene vertical
         scene.add(earth);
       },
       undefined,
@@ -370,10 +369,13 @@ window.mostrarOrbita3D = function(index) {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
+    // NUEVO: Creamos la malla de la cuadrícula, que representa el plano horizontal de la eclíptica.
     const size = radioTierra * 3;
     const divisions = 20;
     const gridHelper = new THREE.GridHelper(size, divisions, 0x555555, 0x555555);
-    gridHelper.rotation.x = Math.PI / 2;
+    
+    // Rotamos la cuadrícula 90 grados para que quede en el plano vertical (XY).
+    gridHelper.rotation.y = Math.PI / 2;
     scene.add(gridHelper);
 
     plotOrbit(d);
@@ -398,7 +400,8 @@ window.mostrarOrbita3D = function(index) {
     if (points.length > 1) {
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
       line = new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: 0xff9900 }));
-      line.rotation.x = 0.4084;
+      
+      // Mantenemos la órbita sin rotación para que se visualice correctamente con el plano vertical.
       scene.add(line);
     }
   }
