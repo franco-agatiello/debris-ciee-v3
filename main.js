@@ -400,8 +400,7 @@ window.mostrarOrbita3D = function(index) {
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
       line = new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: 0xff9900 }));
       
-      // NUEVO: Rotamos la órbita 23.4 grados sobre el eje X para que su plano coincida con la inclinación del eje de la Tierra.
-      line.rotation.x = inclinacionEje;
+      // CAMBIO: Se remueve la inclinación de la órbita.
       
       scene.add(line);
     }
