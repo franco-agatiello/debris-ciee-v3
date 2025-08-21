@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Quaternion, Vector3 } from 'three';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { Quaternion, Vector3 } from 'three';
 
 let debris = [];
 let mapa, capaPuntos, capaCalor, modo = "puntos";
@@ -251,7 +254,8 @@ window.mostrarOrbita3D = function(index) {
   const modal = new bootstrap.Modal(modalElement);
   
   let scene, camera, renderer, earth, controls, line, textPerigeo, textApogeo, legenda3D, eclipticPlane, ecuatorialPlane;
-  
+  let orbitGroup; // Nuevo grupo para la órbita
+
   function crearLeyenda3D(container) {
       const legendDiv = document.createElement('div');
       legendDiv.id = 'leyenda-3d';
@@ -285,33 +289,49 @@ window.mostrarOrbita3D = function(index) {
   }
 
   function alinearVistaEcliptica() {
-    // Rota la Tierra a su posición natural (inclinación del eje)
+    // Rota la Tierra a su posición natural
     if (earth) {
-      earth.rotation.x = 23.5 * Math.PI / 180;
+      earth.rotation.x = -23.5 * Math.PI / 180;
     }
-    // Muestra el plano de la eclíptica y esconde el ecuatorial
-    if (eclipticPlane) eclipticPlane.visible = true;
+    // Oculta el plano ecuatorial
     if (ecuatorialPlane) ecuatorialPlane.visible = false;
+    // Muestra el plano de la eclíptica
+    if (eclipticPlane) eclipticPlane.visible = true;
+
+    // Rota el grupo de la órbita para que se vea alineada con la eclíptica
+    if (orbitGroup) {
+      orbitGroup.rotation.x = -23.5 * Math.PI / 180;
+    }
 
     // Ajusta la cámara para ver el plano de la eclíptica desde arriba
-    const targetQuaternion = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
-    controls.object.quaternion.slerp(targetQuaternion, 1);
-    controls.target.set(0, 0, 0); // Vuelve al centro
+    // Esto es un movimiento suave de la cámara a su nueva posición
+    controls.target.set(0,0,0);
+    camera.position.set(0, 15000, 0); // Ajusta la altura de la cámara si es necesario
+    camera.up.set(0,0,1);
+    camera.lookAt(controls.target);
   }
 
   function alinearVistaEcuatorial() {
-    // Vuelve la Tierra a una posición recta (sin inclinación)
+    // Vuelve la Tierra a una posición recta
     if (earth) {
       earth.rotation.x = 0;
     }
-    // Muestra el plano ecuatorial y esconde el de la eclíptica
-    if (eclipticPlane) eclipticPlane.visible = false;
+    // Muestra el plano ecuatorial
     if (ecuatorialPlane) ecuatorialPlane.visible = true;
+    // Oculta el plano de la eclíptica
+    if (eclipticPlane) eclipticPlane.visible = false;
+    
+    // Rota el grupo de la órbita a la posición original (alineada con el ecuador)
+    if (orbitGroup) {
+      orbitGroup.rotation.x = 0;
+    }
 
     // Ajusta la cámara para ver el plano ecuatorial desde arriba
-    const targetQuaternion = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
-    controls.object.quaternion.slerp(targetQuaternion, 1);
-    controls.target.set(0, 0, 0); // Vuelve al centro
+    // Esto es un movimiento suave de la cámara a su nueva posición
+    controls.target.set(0,0,0);
+    camera.position.set(0, 15000, 0); // Ajusta la altura de la cámara si es necesario
+    camera.up.set(0,0,1);
+    camera.lookAt(controls.target);
   }
 
   function init(d) {
@@ -361,7 +381,7 @@ window.mostrarOrbita3D = function(index) {
         const geometry = new THREE.SphereGeometry(radioTierra, 64, 64);
         const material = new THREE.MeshBasicMaterial({ map: texture });
         earth = new THREE.Mesh(geometry, material);
-        // Posición inicial de la Tierra: sin inclinación
+        // La Tierra se mantiene sin inclinación
         scene.add(earth);
       },
       undefined,
@@ -375,12 +395,12 @@ window.mostrarOrbita3D = function(index) {
     const gridGeometry = new THREE.PlaneGeometry(planeSize, planeSize, divisions, divisions);
     const gridMaterial = new THREE.MeshBasicMaterial({ color: 0x888888, transparent: true, opacity: 0.1, side: THREE.DoubleSide, wireframe: true });
     
-    // Plano de la eclíptica (inicialmente visible)
+    // Plano de la eclíptica
     eclipticPlane = new THREE.Mesh(gridGeometry, gridMaterial);
     eclipticPlane.rotation.x = -23.5 * Math.PI / 180;
     scene.add(eclipticPlane);
 
-    // Plano ecuatorial (inicialmente oculto)
+    // Plano ecuatorial
     ecuatorialPlane = new THREE.Mesh(gridGeometry, gridMaterial);
     ecuatorialPlane.rotation.x = 0;
     ecuatorialPlane.visible = false;
@@ -388,7 +408,7 @@ window.mostrarOrbita3D = function(index) {
 
     const satrec = satellite.twoline2satrec(d.tle1, d.tle2);
     const perigeo = satrec.perigee + radioTierra;
-    const apogeo = satrec.apogeo + radioTierra;
+    const apogeo = satrec.apogee + radioTierra;
 
     const canvasPerigeo = document.createElement('canvas');
     const contextPerigeo = canvasPerigeo.getContext('2d');
@@ -444,7 +464,11 @@ window.mostrarOrbita3D = function(index) {
     if (points.length > 1) {
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
       line = new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: 0xff9900 }));
-      scene.add(line);
+      
+      // La órbita se agrega a un nuevo grupo
+      orbitGroup = new THREE.Group();
+      orbitGroup.add(line);
+      scene.add(orbitGroup);
     }
   }
   
