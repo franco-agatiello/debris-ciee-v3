@@ -358,9 +358,11 @@ window.mostrarOrbita3D = function(index) {
         const geometry = new THREE.SphereGeometry(radioTierra, 64, 64);
         const material = new THREE.MeshBasicMaterial({ map: texture });
         earth = new THREE.Mesh(geometry, material);
-        // NUEVO: Rotamos la Tierra para que su eje se incline 23.4 grados sobre el eje X.
-        earth.rotation.x = inclinacionEje;
-        scene.add(earth);
+        // La Tierra rota sobre su eje Y, y este eje completo se inclina 23.4 grados sobre el eje X
+        const earthGroup = new THREE.Group();
+        earthGroup.add(earth);
+        earthGroup.rotation.x = inclinacionEje;
+        scene.add(earthGroup);
       },
       undefined,
       function(error) {
@@ -371,7 +373,7 @@ window.mostrarOrbita3D = function(index) {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
-    // NUEVO: La malla está en el plano XZ, que representa la eclíptica.
+    // La malla en el plano XZ representa la eclíptica.
     const size = radioTierra * 3;
     const divisions = 20;
     const gridHelper = new THREE.GridHelper(size, divisions, 0x555555, 0x555555);
@@ -400,7 +402,8 @@ window.mostrarOrbita3D = function(index) {
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
       line = new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: 0xff9900 }));
       
-      // CAMBIO: Se remueve la inclinación de la órbita.
+      // Rotamos la órbita 23.4 grados sobre el eje X para que su plano coincida con la inclinación del eje de la Tierra.
+      line.rotation.x = inclinacionEje;
       
       scene.add(line);
     }
