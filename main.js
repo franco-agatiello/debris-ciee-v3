@@ -370,12 +370,12 @@ window.mostrarOrbita3D = function(index) {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
-    // NUEVO: Creamos la malla de la cuadrícula, que representa el plano horizontal de la eclíptica.
+    // NUEVO: Creamos la malla de la cuadrícula, que por defecto está en el plano XZ. No necesitamos rotarla.
     const size = radioTierra * 3;
     const divisions = 20;
     const gridHelper = new THREE.GridHelper(size, divisions, 0x555555, 0x555555);
     
-    // Mantenemos la malla en su posición por defecto, el plano XZ.
+    // El GridHelper se crea en el plano XZ por defecto, no es necesaria una rotación aquí.
     scene.add(gridHelper);
 
     plotOrbit(d);
@@ -395,7 +395,7 @@ window.mostrarOrbita3D = function(index) {
       const pos = satellite.propagate(satrec, time);
       if (!pos || !pos.position) continue;
       const eciPos = pos.position;
-      points.push(new THREE.Vector3(eciPos.x, eciPos.y, eciPos.z));
+      points.push(new THREE.Vector3(eciPos.x, eciPos.z, -eciPos.y));
     }
     if (points.length > 1) {
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
