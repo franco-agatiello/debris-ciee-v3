@@ -7,6 +7,7 @@ let leyendaPuntos, leyendaCalor;
 let mapaTrayectoria = null;
 
 const radioTierra = 6371; // km
+const inclinacionEje = 23.4 * Math.PI / 180; // 23.4 grados en radianes
 
 const iconoAzul = L.icon({iconUrl:'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',iconSize:[18,29],iconAnchor:[9,29],popupAnchor:[1,-30]});
 const iconoVerde = L.icon({iconUrl:'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',iconSize:[18,29],iconAnchor:[9,29],popupAnchor:[1,-30]});
@@ -357,8 +358,8 @@ window.mostrarOrbita3D = function(index) {
         const geometry = new THREE.SphereGeometry(radioTierra, 64, 64);
         const material = new THREE.MeshBasicMaterial({ map: texture });
         earth = new THREE.Mesh(geometry, material);
-        // NUEVO: Inclinamos la Tierra 23.4 grados sobre el eje Z (0.4084 radianes)
-        earth.rotation.z = -0.4084;
+        // NUEVO: Rotamos la Tierra para que su eje se incline 23.4 grados sobre el eje X.
+        earth.rotation.x = inclinacionEje;
         scene.add(earth);
       },
       undefined,
@@ -370,12 +371,10 @@ window.mostrarOrbita3D = function(index) {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
-    // NUEVO: Creamos la malla de la cuadrícula, que por defecto está en el plano XZ. No necesitamos rotarla.
+    // NUEVO: La malla está en el plano XZ, que representa la eclíptica.
     const size = radioTierra * 3;
     const divisions = 20;
     const gridHelper = new THREE.GridHelper(size, divisions, 0x555555, 0x555555);
-    
-    // El GridHelper se crea en el plano XZ por defecto, no es necesaria una rotación aquí.
     scene.add(gridHelper);
 
     plotOrbit(d);
@@ -395,15 +394,14 @@ window.mostrarOrbita3D = function(index) {
       const pos = satellite.propagate(satrec, time);
       if (!pos || !pos.position) continue;
       const eciPos = pos.position;
-      points.push(new THREE.Vector3(eciPos.x, eciPos.z, -eciPos.y));
+      points.push(new THREE.Vector3(eciPos.x, eciPos.y, eciPos.z));
     }
     if (points.length > 1) {
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
       line = new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: 0xff9900 }));
       
-      // NUEVO: Inclinamos la órbita 23.4 grados sobre el eje Z (0.4084 radianes)
-      // Esto la alinea con la inclinación axial de la Tierra.
-      line.rotation.z = -0.4084;
+      // NUEVO: Rotamos la órbita 23.4 grados sobre el eje X para que su plano coincida con la inclinación del eje de la Tierra.
+      line.rotation.x = inclinacionEje;
       
       scene.add(line);
     }
