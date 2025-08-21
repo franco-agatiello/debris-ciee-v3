@@ -1,9 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Quaternion, Vector3 } from 'three';
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Quaternion, Vector3 } from 'three';
 
 let debris = [];
 let mapa, capaPuntos, capaCalor, modo = "puntos";
