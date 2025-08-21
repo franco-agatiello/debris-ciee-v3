@@ -368,19 +368,18 @@ window.mostrarOrbita3D = function(index) {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
-    // Creamos un grupo para el plano de la cuadrícula
-    const planeGroup = new THREE.Group();
-    // Inclinamos el grupo 23.4 grados (0.4084 radianes) sobre el eje Z
-    planeGroup.rotation.z = -0.4084;
-    scene.add(planeGroup);
-
-    // Añadimos una malla (GridHelper) al grupo inclinado
+    // Creamos la malla de la cuadrícula.
     const size = radioTierra * 3;
     const divisions = 20;
     const gridHelper = new THREE.GridHelper(size, divisions, 0x555555, 0x555555);
-    // Rotamos la cuadrícula 90 grados para que quede en el plano horizontal
+    
+    // Aplicamos las rotaciones en el orden correcto:
+    // 1. Rota 90 grados sobre el eje X para que quede horizontal (plano XY).
     gridHelper.rotation.x = Math.PI / 2;
-    planeGroup.add(gridHelper);
+    // 2. Rota -23.4 grados sobre el eje Z para inclinar el plano del ecuador.
+    gridHelper.rotation.z = -0.4084;
+
+    scene.add(gridHelper);
 
     plotOrbit(d);
   }
