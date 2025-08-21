@@ -252,7 +252,7 @@ window.mostrarOrbita3D = function(index) {
     const modalElement = document.getElementById('modalOrbita3D');
     const modal = new bootstrap.Modal(modalElement);
     
-    function crearLeyenda3D(container, modo) {
+    function crearLeyenda3D(container) {
         const legendDiv = document.createElement('div');
         legendDiv.id = 'leyenda-3d';
         legendDiv.style.position = 'absolute';
@@ -263,13 +263,6 @@ window.mostrarOrbita3D = function(index) {
         legendDiv.style.padding = '15px';
         legendDiv.style.borderRadius = '8px';
         legendDiv.style.fontFamily = 'Arial, sans-serif';
-        
-        let planoReferenciaTexto = '';
-        if (modo === 'ecliptica') {
-            planoReferenciaTexto = 'Plano de la Eclíptica';
-        } else if (modo === 'ecuatorial') {
-            planoReferenciaTexto = 'Plano Ecuatorial';
-        }
 
         legendDiv.innerHTML = `
             <div>
@@ -278,40 +271,23 @@ window.mostrarOrbita3D = function(index) {
             </div>
             <div>
                 <span style="display:inline-block; width:15px; height:2px; background:rgba(255, 255, 255, 0.5); margin-right:5px; vertical-align:middle;"></span>
-                <span>${planoReferenciaTexto}</span>
+                <span>Plano de la Eclíptica</span>
             </div>
         `;
         container.appendChild(legendDiv);
         return legendDiv;
     }
 
-    function removerLeyenda3D() {
-        const legend = document.getElementById('leyenda-3d');
-        if (legend) {
-            legend.remove();
-        }
-    }
-
     function alinearVistaEcliptica() {
-        earthGroup.rotation.x = -23.4 * Math.PI / 180;
-        ecuatorialPlane.visible = false;
-        eclipticPlane.visible = true;
         controls.target.set(0, 0, 0);
         camera.position.set(0, 15000, 0);
         controls.update();
-        removerLeyenda3D();
-        crearLeyenda3D(document.getElementById('orbita3DContainer'), 'ecliptica');
     }
 
     function alinearVistaEcuatorial() {
-        earthGroup.rotation.x = 0;
-        ecuatorialPlane.visible = true;
-        eclipticPlane.visible = false;
         controls.target.set(0, 0, 0);
         camera.position.set(radioTierra * 3, radioTierra * 0.5, radioTierra * 3);
         controls.update();
-        removerLeyenda3D();
-        crearLeyenda3D(document.getElementById('orbita3DContainer'), 'ecuatorial');
     }
     
     function init(d) {
@@ -372,18 +348,12 @@ window.mostrarOrbita3D = function(index) {
         const gridGeometry = new THREE.PlaneGeometry(planeSize, planeSize, divisions, divisions);
         const gridMaterial = new THREE.MeshBasicMaterial({ color: 0x888888, transparent: true, opacity: 0.1, side: THREE.DoubleSide, wireframe: true });
         
-        ecuatorialPlane = new THREE.Mesh(gridGeometry, gridMaterial);
-        ecuatorialPlane.rotation.x = Math.PI / 2;
-        earthGroup.add(ecuatorialPlane);
-        ecuatorialPlane.visible = true;
-
         eclipticPlane = new THREE.Mesh(gridGeometry, gridMaterial);
         eclipticPlane.rotation.x = Math.PI / 2;
         eclipticPlane.rotation.z = -23.4 * Math.PI / 180;
-        earthGroup.add(eclipticPlane);
-        eclipticPlane.visible = false;
         
         scene.add(earthGroup);
+        scene.add(eclipticPlane);
 
         const satrec = satellite.twoline2satrec(d.tle1, d.tle2);
         const perigeo = satrec.perigee + radioTierra;
@@ -421,6 +391,7 @@ window.mostrarOrbita3D = function(index) {
         scene.add(ambientLight);
         
         plotOrbit(d);
+        crearLeyenda3D(container);
         alinearVistaEcuatorial();
     }
     
@@ -467,13 +438,17 @@ window.mostrarOrbita3D = function(index) {
     
     modalElement.addEventListener('hidden.bs.modal', function onModalHidden() {
         if (scene) {
-            // Eliminar todos los objetos de la escena
             while(scene.children.length > 0){ 
                 scene.remove(scene.children[0]); 
             }
         }
         if (renderer) {
             renderer.dispose();
+        }
+        if (earthGroup) {
+            while(earthGroup.children.length > 0){
+                earthGroup.remove(earthGroup.children[0]);
+            }
         }
         modalElement.removeEventListener('hidden.bs.modal', onModalHidden);
     });
