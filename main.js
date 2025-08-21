@@ -279,12 +279,16 @@ window.mostrarOrbita3D = function(index) {
     }
 
     function alinearVistaEcliptica() {
+        // Rotar el grupo de la Tierra para ver el plano de la eclíptica como horizontal
+        earthGroup.rotation.x = -23.4 * Math.PI / 180;
         controls.target.set(0, 0, 0);
         camera.position.set(0, 15000, 0);
         controls.update();
     }
 
     function alinearVistaEcuatorial() {
+        // Regresar el grupo de la Tierra a la posición normal
+        earthGroup.rotation.x = 0;
         controls.target.set(0, 0, 0);
         camera.position.set(radioTierra * 3, radioTierra * 0.5, radioTierra * 3);
         controls.update();
@@ -348,6 +352,7 @@ window.mostrarOrbita3D = function(index) {
         const gridGeometry = new THREE.PlaneGeometry(planeSize, planeSize, divisions, divisions);
         const gridMaterial = new THREE.MeshBasicMaterial({ color: 0x888888, transparent: true, opacity: 0.1, side: THREE.DoubleSide, wireframe: true });
         
+        // Plano de la eclíptica (fijo en la escena)
         eclipticPlane = new THREE.Mesh(gridGeometry, gridMaterial);
         eclipticPlane.rotation.x = Math.PI / 2;
         eclipticPlane.rotation.z = -23.4 * Math.PI / 180;
