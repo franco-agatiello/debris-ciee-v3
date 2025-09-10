@@ -1,8 +1,8 @@
 // IMPORTS THREE.js via importmap (see HTML)
 
 // ================== Config ==================
-const LOGO_SRC = "Captura de pantalla 2025-06-06 211123.png";
-const EARTH_IMG_SRC = "earthmap1k.jpg";
+const LOGO_SRC = "img/Captura de pantalla 2025-06-06 211123.png";
+const EARTH_IMG_SRC = "img/earthmap1k.jpg";
 const radioTierra = 6371; // km
 
 const iconoAzul = L.icon({iconUrl:'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',iconSize:[18,29],iconAnchor:[9,29],popupAnchor:[1,-30]});
@@ -15,7 +15,6 @@ let mapa, capaPuntos, capaCalor, modo = "puntos";
 let leyendaPuntos, leyendaCalor;
 let mapaTrayectoria = null;
 
-// ================== Mapa ==================
 mapa = L.map('map', { worldCopyJump: true }).setView([0,0], 2);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 8,
@@ -24,14 +23,12 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(mapa);
 capaPuntos = L.layerGroup().addTo(mapa);
 
-// ================== Datos ==================
 (async function cargarDatos() {
   try {
-    const r = await fetch("debris.json");
-    debris = await r.json();
-  } catch(e) {
     const r = await fetch("data/debris.json");
     debris = await r.json();
+  } catch(e) {
+    debris = [];
   }
   poblarDropdown("dropdownPaisMenu", "dropdownPaisBtn", valoresUnicos(debris.map(d=>d.pais)), "Todos");
   poblarDropdown("dropdownClaseMenu", "dropdownClaseBtn", valoresUnicos(debris.map(d=>d.clase_objeto)), "Todas");
@@ -39,7 +36,6 @@ capaPuntos = L.layerGroup().addTo(mapa);
   actualizarMapa();
 })();
 
-// ================== Helpers ==================
 function valoresUnicos(arr){ return Array.from(new Set(arr.filter(Boolean))).sort((a,b)=>String(a).localeCompare(String(b),'es')); }
 function anio(str){ if(!str) return null; const y = parseInt(String(str).slice(0,4),10); return Number.isFinite(y)?y:null; }
 function numOrNull(v){ if(v===""||v==null) return null; const n=Number(v); return Number.isFinite(n)?n:null; }
@@ -54,7 +50,6 @@ function getMasaReingresadaKg(d){
   return 0;
 }
 
-// ================== Dropdowns ==================
 function poblarDropdown(menuId, btnId, items, etiquetaTodos="Todos"){
   const menu = document.getElementById(menuId);
   const btn  = document.getElementById(btnId);
@@ -73,7 +68,6 @@ function poblarDropdown(menuId, btnId, items, etiquetaTodos="Todos"){
   });
 }
 
-// ================== Filtros ==================
 function obtenerFiltros(){
   const constAll = document.getElementById('const-all').checked;
   const constYes = document.getElementById('const-yes').checked;
@@ -139,7 +133,6 @@ function filtrarDatos(){
   });
 }
 
-// ================== Mapa (Leaflet en pantalla) ==================
 function marcadorPorFecha(fecha) {
   const year = parseInt(fecha?.slice(0,4),10);
   if (year >= 2004 && year <= 2010) return iconoAzul;
