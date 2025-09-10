@@ -47,7 +47,6 @@ body > .container-fluid { width: 100vw !important; max-width: 100vw !important; 
 
 #dropdownPaisMenu { max-height: 260px; overflow-y: auto; }
 
-/* ---- Estilos de modals y visualizadores de v1 ---- */
 .info.legend {
   background: #fff;
   opacity: 1;
