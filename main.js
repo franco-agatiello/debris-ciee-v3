@@ -221,21 +221,12 @@ function mostrarLeyendaCalor(){
   leyendaCalor.addTo(mapa);
 }
 
-
-// ================== Trayectoria y órbita (de v1, integrados) ==================
+// --- Trayectoria ---
 window.mostrarTrayectoria = function(index) {
   const d = filtrarDatos()[index];
   if (!d.tle1 || !d.tle2) return alert("No hay TLE para este debris.");
-  const diasDiferencia = d.dias_diferencia;
-  let mensajeDiferencia = '';
-  if (diasDiferencia !== undefined && diasDiferencia !== null) {
-    const horas = (diasDiferencia * 24).toFixed(2);
-    mensajeDiferencia = `<div class="alert alert-warning p-2" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Advertencia:</strong> Diferencia de tiempo estimada entre la caída y los últimos datos orbitales (TLE): <b>${horas} horas</b></div>`;
-  }
   const infoDiv = document.getElementById('trayectoriaInfo');
-  if (infoDiv) {
-    infoDiv.innerHTML = mensajeDiferencia;
-  }
+  infoDiv.innerHTML = "";
   setTimeout(() => {
     if (mapaTrayectoria) { mapaTrayectoria.remove(); mapaTrayectoria = null; }
     mapaTrayectoria = L.map('mapTrayectoria').setView([getLat(d), getLon(d)], 3);
@@ -291,98 +282,14 @@ window.mostrarTrayectoria = function(index) {
   modal.show();
 };
 
-window.mostrarOrbitaPlanta = function(index) {
-  const d = filtrarDatos()[index];
-  if (!d.tle1 || !d.tle2) return alert("No hay TLE para este debris.");
-  const a = d.a ?? null;
-  const apogeo = d.apogeo ?? null;
-  const perigeo = d.perigeo ?? null;
-  let excentricidad = null;
-  if (a && apogeo !== null && perigeo !== null) {
-    excentricidad = (apogeo - perigeo) / (apogeo + perigeo + 2*radioTierra);
-  } else {
-    excentricidad = null;
-  }
-  let infoHTML = `<strong>Parámetros orbitales:</strong><br>`;
-  if (a) infoHTML += `Semi eje mayor (a): <b>${a.toFixed(2)}</b> km<br>`;
-  if (apogeo) infoHTML += `Apogeo: <b>${apogeo.toFixed(2)}</b> km<br>`;
-  if (perigeo) infoHTML += `Perigeo: <b>${perigeo.toFixed(2)}</b> km<br>`;
-  if (excentricidad !== null) infoHTML += `Excentricidad: <b>${excentricidad.toFixed(4)}</b><br>`;
-  document.getElementById('orbitaPlantaInfo').innerHTML = infoHTML;
-  const canvas = document.getElementById('canvasPlanta');
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (a && excentricidad !== null) {
-    const margen_canvas = 30;
-    const c = a * excentricidad;
-    const b = a * Math.sqrt(1 - excentricidad*excentricidad);
-    const ancho_izq = a - c;
-    const ancho_der = a + c;
-    const ancho_total = ancho_izq + ancho_der;
-    const alto_total = 2 * b;
-    const escala_x = (canvas.width - 2 * margen_canvas) / (ancho_total);
-    const escala_y = (canvas.height - 2 * margen_canvas) / (alto_total);
-    const escala = Math.min(escala_x, escala_y);
-    const xc = canvas.width / 2;
-    const yc = canvas.height / 2;
-    const focoX = xc + c * escala;
-    ctx.beginPath();
-    ctx.ellipse(xc, yc, a * escala, b * escala, 0, 0, 2*Math.PI);
-    ctx.strokeStyle = "#ff9900";
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    const img = new Image();
-    img.src = 'img/earth.png';
-    img.onload = function() {
-      const earthRadiusPx = radioTierra * escala;
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(focoX, yc, earthRadiusPx, 0, 2*Math.PI);
-      ctx.closePath();
-      ctx.clip();
-      ctx.drawImage(img, focoX - earthRadiusPx, yc - earthRadiusPx, earthRadiusPx * 2, earthRadiusPx * 2);
-      ctx.restore();
-      ctx.fillStyle = "#ff0000";
-      ctx.beginPath();
-      ctx.arc(focoX + (a - c) * escala, yc, 5, 0, 2*Math.PI);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(focoX - (a + c) * escala, yc, 5, 0, 2*Math.PI);
-      ctx.fill();
-      canvas.onmousemove = function(e) {
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
-        const perigeoX = focoX + (a - c) * escala;
-        const apogeoX = focoX - (a + c) * escala;
-        const r = 9;
-        let msg = '';
-        if (Math.hypot(mx - perigeoX, my - yc) < r) msg = 'Perigeo';
-        else if (Math.hypot(mx - apogeoX, my - yc) < r) msg = 'Apogeo';
-        else msg = '';
-        canvas.title = msg;
-      };
-    };
-  }
-  const modal = new bootstrap.Modal(document.getElementById('modalOrbitaPlanta'));
-  modal.show();
-};
-
+// --- Órbita 3D ---
 window.mostrarOrbita3D = function(index) {
   const d = filtrarDatos()[index];
   if (!d.tle1 || !d.tle2) {
     return alert("No hay TLE para este debris.");
   }
-  const diasDiferencia = d.dias_diferencia;
-  let mensajeDiferencia = '';
-  if (diasDiferencia !== undefined && diasDiferencia !== null) {
-    const horas = (diasDiferencia * 24).toFixed(2);
-    mensajeDiferencia = `<div class="alert alert-warning p-2" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Advertencia:</strong> Diferencia de tiempo estimada entre la caída y los últimos datos orbitales (TLE): <b>${horas} horas</b></div>`;
-  }
   const infoDiv = document.getElementById('orbita3DInfo');
-  if (infoDiv) {
-    infoDiv.innerHTML = mensajeDiferencia;
-  }
+  infoDiv.innerHTML = "";
   const modalElement = document.getElementById('modalOrbita3D');
   const modal = new bootstrap.Modal(modalElement);
   modalElement.addEventListener('shown.bs.modal', function onModalShown() {
@@ -404,12 +311,12 @@ window.mostrarOrbita3D = function(index) {
     renderer.setPixelRatio(window.devicePixelRatio);
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.25;
     controls.enableZoom = true;
     const textureLoader = new THREE.TextureLoader();
-    textureLoader.load('img/earthmap1k.jpg',
+    textureLoader.load(EARTH_IMG_SRC,
       function(texture) {
         const geometry = new THREE.SphereGeometry(radioTierra, 64, 64);
         const material = new THREE.MeshBasicMaterial({ map: texture });
@@ -457,10 +364,12 @@ window.mostrarOrbita3D = function(index) {
   }
 }
 
-// =========== Listeners (filtros, modos, selección rectangular, informe, PDF) ===========
+// --- Listeners ---
 function listeners(){
-  ['fecha-desde','fecha-hasta','inclinacion-min','inclinacion-max','masa-orbita-min','masa-orbita-max','lat-min','lat-max','lon-min','lon-max']
-    .forEach(id => document.getElementById(id).addEventListener('change', actualizarMapa));
+  [
+    'fecha-desde','fecha-hasta','inclinacion-min','inclinacion-max',
+    'masa-orbita-min','masa-orbita-max','lat-min','lat-max','lon-min','lon-max'
+  ].forEach(id => document.getElementById(id).addEventListener('change', actualizarMapa));
   document.getElementById('modo-puntos').addEventListener('click', ()=>{ modo="puntos"; actualizarMapa(); });
   document.getElementById('modo-calor').addEventListener('click', ()=>{ modo="calor"; actualizarMapa(); });
   document.getElementById('btn-select-rect').addEventListener('click', (e)=>{ e.preventDefault(); activarSeleccionRect(); });
@@ -470,7 +379,7 @@ function listeners(){
   document.getElementById('dlPDF').addEventListener('click', exportInformePDF);
 }
 
-// =========== Selección rectangular (zona) ===========
+// --- Selección rectangular ---
 let rectSeleccion = null, seleccionActiva = false, startLL = null;
 function activarSeleccionRect(){
   if (seleccionActiva) return;
@@ -505,6 +414,18 @@ function limpiarSeleccionRect(){
   actualizarMapa();
 }
 
-// =========== Informe, gráficos y PDF (igual a v2, solo lo esencial) ===========
-/* ... (El código para el informe, gráficos y exportación PDF permanece igual que en v2, como lo posteaste en reentradas_mapa.js) ... */
-// Puedes copiar esas funciones aquí si lo deseas, o mantenerlas en un archivo aparte e importarlas.
+// --- Informe y PDF (simplificado ejemplo) ---
+function abrirInforme() {
+  const modal = new bootstrap.Modal(document.getElementById('informeModal'));
+  modal.show();
+  document.getElementById('informe-resumen').innerText = 
+    `Cantidad de registros visibles: ${filtrarDatos().length}`;
+  // Aquí deberías agregar el código para rellenar tus gráficos con Chart.js
+}
+function exportInformePDF() {
+  // Ejemplo mínimo usando jsPDF
+  const doc = new window.jspdf.jsPDF();
+  doc.text("Informe de Debris Espaciales", 10, 10);
+  doc.text(`Registros visibles: ${filtrarDatos().length}`, 10, 20);
+  doc.save("informe-debris.pdf");
+}
