@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard | Reentradas</title>
+  <title>Dashboard | Debris Espaciales</title>
 
   <!-- Estilos y librerías -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
-  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="styles_combinados.css"/>
 
+  <!-- Estilos para selección/rectángulo -->
   <style>
-    /* Rectángulo de selección (visual) */
     .selecting-rect {
       pointer-events: none;
       border: 2px dashed #0d6efd;
@@ -25,13 +25,12 @@
 <body>
   <div class="container-fluid">
     <div class="row flex-nowrap">
-      <!-- Sidebar -->
+      <!-- Sidebar avanzada -->
       <aside class="col-auto p-2 bg-light" id="sidebar">
         <a href="https://www.ciee.unlp.edu.ar/" target="_blank" rel="noopener">
           <img src="Captura de pantalla 2025-06-06 211123.png" alt="Logo CIEE" class="sidebar-logo mb-3">
         </a>
         <h4>Filtros</h4>
-
         <form id="filter-form">
           <!-- País -->
           <label>País de origen:</label>
@@ -41,7 +40,6 @@
             </button>
             <ul class="dropdown-menu w-100" id="dropdownPaisMenu" style="max-height:220px; overflow-y:auto;"></ul>
           </div>
-
           <!-- Clase -->
           <label>Clase de objeto:</label>
           <div class="dropdown mb-2" id="clase-dropdown">
@@ -50,28 +48,24 @@
             </button>
             <ul class="dropdown-menu w-100" id="dropdownClaseMenu" style="max-height:220px; overflow-y:auto;"></ul>
           </div>
-
           <!-- Fecha -->
           <label>Fecha de reentrada:</label>
           <div class="row g-1 mb-2">
             <div class="col"><input type="date" class="form-control" id="fecha-desde"></div>
             <div class="col"><input type="date" class="form-control" id="fecha-hasta"></div>
           </div>
-
           <!-- Inclinación -->
           <label>Inclinación órbita (°):</label>
           <div class="row g-1 mb-2">
             <div class="col"><input type="number" class="form-control" id="inclinacion-min" placeholder="Mín" min="0" max="180"></div>
             <div class="col"><input type="number" class="form-control" id="inclinacion-max" placeholder="Máx" min="0" max="180"></div>
           </div>
-
           <!-- Masa -->
           <label>Masa en órbita (kg):</label>
           <div class="row g-1 mb-2">
             <div class="col"><input type="number" class="form-control" id="masa-orbita-min" placeholder="Mín" min="0"></div>
             <div class="col"><input type="number" class="form-control" id="masa-orbita-max" placeholder="Máx" min="0"></div>
           </div>
-
           <!-- Constelación -->
           <label>Constelaciones:</label>
           <div class="btn-group w-100 mb-2" role="group" aria-label="Constelaciones">
@@ -82,7 +76,6 @@
             <input type="radio" class="btn-check" name="rb-const" id="const-no" autocomplete="off">
             <label class="btn btn-outline-secondary" for="const-no">No constelación</label>
           </div>
-
           <!-- Región (Lat/Lon) + selección rectangular -->
           <div class="card p-2 mb-2">
             <div class="d-flex justify-content-between align-items-center">
@@ -102,10 +95,8 @@
             </div>
           </div>
         </form>
-
         <button id="btn-informe" class="btn btn-primary w-100 mb-2">Generar informe</button>
         <div class="mt-2 small text-muted">Registros mostrados: <span id="countSpan">0</span></div>
-
         <div class="mt-4 d-grid gap-2">
           <button type="button" class="btn btn-primary" id="modo-puntos">
             <i class="bi bi-geo-alt-fill me-1"></i>Puntos
@@ -115,19 +106,63 @@
           </button>
         </div>
       </aside>
-
       <!-- Mapa -->
       <main class="col p-0" id="main-col">
         <div id="map"></div>
       </main>
     </div>
-
     <footer id="footer-ciee" class="d-none d-md-block">
       <span>© CIEE 2025 — <a href="https://www.ciee.unlp.edu.ar/" target="_blank" rel="noopener">ciee.unlp.edu.ar</a></span>
     </footer>
   </div>
 
-  <!-- Modal Informe -->
+  <!-- Modals trayectorias y órbitas (de v1, integrados) -->
+  <div class="modal fade" id="modalTrayectoria" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Trayectoria del debris</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="trayectoriaInfo" class="text-center text-muted mb-2" style="font-size:0.9em; font-weight:400;"></div>
+          <div id="mapTrayectoria" style="width: 100%; height: 400px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="modalOrbitaPlanta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Órbita</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="orbitaPlantaInfo"></div>
+          <canvas id="canvasPlanta" width="400" height="400" style="width:100%;max-width:400px;"></canvas>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="modalOrbita3D" tabindex="-1" aria-labelledby="modalOrbita3DLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalOrbita3DLabel">Órbita en 3D</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="orbita3DInfo" class="text-center text-muted" style="font-size:0.9em; font-weight:400;"></div>
+          <div id="orbita3DContainer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal Informe (de v2) -->
   <div class="modal fade" id="informeModal" tabindex="-1" aria-labelledby="informeLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content">
@@ -136,14 +171,11 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
         <div class="modal-body">
-          <!-- Spinner / estado -->
           <div id="informe-loading" class="d-flex align-items-center gap-2 mb-3">
             <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
             <span class="text-muted small">Generando informe…</span>
           </div>
-
           <div id="informe-resumen" class="small text-muted mb-3"></div>
-
           <div class="row g-4">
             <div class="col-md-6">
               <h6>Reentradas por tramo</h6>
@@ -161,10 +193,8 @@
               <h6>Tiempo en órbita</h6>
               <canvas id="chartPieTiempo" height="260"></canvas>
             </div>
-
             <div class="col-12">
               <h6>Mapa (registros filtrados)</h6>
-              <!-- Canvas oculto para dibujar el mapa rápido; el <img> muestra el resultado -->
               <canvas id="canvasMapaInforme" class="d-none"></canvas>
               <img id="imgMapaInforme" style="max-width:100%; border:1px solid #e5e7eb; border-radius:8px;" alt="Mapa con filtros"/>
             </div>
@@ -177,15 +207,21 @@
       </div>
     </div>
   </div>
-
-  <!-- Librerías -->
+  <!-- Librerías JS externas -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+      }
+    }
+  </script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-
-  <!-- Lógica -->
-  <script src="main.js"></script>
+  <script src="https://unpkg.com/satellite.js/dist/satellite.min.js"></script>
+  <script src="main_combinado.js" type="module"></script>
 </body>
 </html>
