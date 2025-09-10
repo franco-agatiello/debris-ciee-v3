@@ -1,4 +1,5 @@
-// IMPORTS THREE.js via importmap (see HTML)
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 // ================== Config ==================
 const LOGO_SRC = "img/Captura de pantalla 2025-06-06 211123.png";
@@ -55,6 +56,8 @@ function poblarDropdown(menuId, btnId, items, etiquetaTodos="Todos"){
   const btn  = document.getElementById(btnId);
   menu.innerHTML = `<li><a class="dropdown-item" href="#" data-value="">${etiquetaTodos}</a></li>` +
     items.map(v=>`<li><a class="dropdown-item" href="#" data-value="${v}">${v}</a></li>`).join("");
+  btn.textContent = etiquetaTodos; // Default selected text
+  btn.dataset.value = ""; // Default selected value
   menu.querySelectorAll(".dropdown-item").forEach(a=>{
     a.addEventListener("click",(e)=>{
       e.preventDefault();
@@ -153,7 +156,6 @@ function popupContenidoDebris(d,index){
   if(d.imagen) contenido += `<img src="${d.imagen}" alt="${d.nombre}"><br>`;
   if(d.tle1 && d.tle2) {
     contenido += `<button class="btn btn-sm btn-info mt-2" onclick="mostrarTrayectoria(${index})">Ver trayectoria</button>`;
-    contenido += `<button class="btn btn-sm btn-warning mt-2 ms-1" onclick="mostrarOrbitaPlanta(${index})">Ver órbita</button>`;
     contenido += `<button class="btn btn-sm btn-warning mt-2 ms-1" onclick="mostrarOrbita3D(${index})">Órbita 3D</button>`;
   }
   return contenido;
@@ -218,6 +220,7 @@ function mostrarLeyendaCalor(){
   };
   leyendaCalor.addTo(mapa);
 }
+
 
 // ================== Trayectoria y órbita (de v1, integrados) ==================
 window.mostrarTrayectoria = function(index) {
