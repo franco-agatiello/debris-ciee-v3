@@ -105,15 +105,15 @@ body > .container-fluid { width: 100vw !important; max-width: 100vw !important; 
 .leaflet-popup-content .btn-info:hover, .leaflet-popup-content .btn-warning:hover { opacity: 0.8; }
 #orbita3DContainer { width: 100%; height: 70vh; max-height: 500px; }
 
-/* --- Mejoras para el selector de constelaciones (toggle más visual) --- */
+/* ============== Ajustes visuales constelación toggle ============== */
 .btn-group.advanced-toggle label.btn {
-  font-weight: 600;
-  font-size: 1em;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-  border-radius: 0 !important;
-  border: 1px solid #ccc;
-  background: #f4f6fa;
-  color: #333;
+  white-space: normal !important;
+  word-break: break-word;
+  padding-left: 6px;
+  padding-right: 6px;
+  font-size: 0.98em;
+  min-width: 0;
+  line-height: 1.1;
 }
 .btn-group.advanced-toggle label.btn:first-child { border-radius: 0.6rem 0 0 0.6rem !important; }
 .btn-group.advanced-toggle label.btn:last-child { border-radius: 0 0.6rem 0.6rem 0 !important; }
@@ -124,7 +124,23 @@ body > .container-fluid { width: 100vw !important; max-width: 100vw !important; 
   box-shadow: 0 2px 8px #3f51b533;
 }
 
-/* --- Selección rectangular más gráfica en el mapa --- */
+/* ========== Feedback gráfico selección rectangular mapa ========== */
+.map-select-instr {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #3f51b5;
+  color: #fff;
+  padding: 11px 22px;
+  border-radius: 10px;
+  font-size: 1.08em;
+  z-index: 9000;
+  box-shadow: 0 4px 24px #2c3e5011;
+  opacity: 0.97;
+  pointer-events: none;
+  font-weight: 600;
+}
 .leaflet-interactive.selecting-rect {
   stroke-dasharray: 6 3;
   stroke: #0d6efd;
