@@ -39,7 +39,6 @@
           <img src="img/Captura de pantalla 2025-06-06 211123.png" alt="Logo CIEE" class="sidebar-logo mb-3">
         </a>
         <h4>Filtros</h4>
-        <!-- INICIO: Filtros en acordeón Bootstrap -->
         <div class="accordion mb-2" id="filtrosAccordion">
           <!-- País de origen -->
           <div class="accordion-item">
@@ -134,17 +133,13 @@
             </h2>
             <div id="collapseConst" class="accordion-collapse collapse" aria-labelledby="headingConst" data-bs-parent="#filtrosAccordion">
               <div class="accordion-body">
-                <div class="btn-group w-100 mb-2 advanced-toggle" role="group" aria-label="Constelaciones">
+                <div class="btn-group w-100 mb-2" role="group" aria-label="Constelaciones">
                   <input type="radio" class="btn-check" name="rb-const" id="const-all" autocomplete="off" checked>
                   <label class="btn btn-outline-secondary" for="const-all">Todas</label>
                   <input type="radio" class="btn-check" name="rb-const" id="const-yes" autocomplete="off">
-                  <label class="btn btn-outline-secondary" for="const-yes">
-                    En<br>constelación
-                  </label>
+                  <label class="btn btn-outline-secondary" for="const-yes">En constelación</label>
                   <input type="radio" class="btn-check" name="rb-const" id="const-no" autocomplete="off">
-                  <label class="btn btn-outline-secondary" for="const-no">
-                    No<br>constelación
-                  </label>
+                  <label class="btn btn-outline-secondary" for="const-no">No constelación</label>
                 </div>
               </div>
             </div>
@@ -179,7 +174,6 @@
             </div>
           </div>
         </div>
-        <!-- FIN: Filtros en acordeón Bootstrap -->
         <button id="btn-informe" class="btn btn-primary w-100 mb-2">Generar informe</button>
         <div class="mt-2 small text-muted">Registros mostrados: <span id="countSpan">0</span></div>
         <div class="mt-4 d-grid gap-2">
