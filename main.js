@@ -414,11 +414,26 @@ function limpiarSeleccionRect(){
   actualizarMapa();
 }
 
-// --- Informe y PDF con Chart.js estéticas ---
+// --- Informe y PDF con Chart.js estéticas y correcciones ---
+let charts = {}; // Para limpiar instancias previas
+
 function abrirInforme() {
   const modal = new bootstrap.Modal(document.getElementById('informeModal'));
   modal.show();
   document.getElementById('informe-loading').style.display = "flex";
+
+  // Limpieza previa
+  Object.values(charts).forEach(c=>{ if(c) c.destroy(); });
+  charts = {};
+  document.getElementById('informe-resumen').innerText = "";
+  document.getElementById('imgMapaInforme').classList.add('d-none');
+  document.getElementById('imgMapaInforme').src = "";
+  const canvasMapa = document.getElementById('canvasMapaInforme');
+  if (canvasMapa) {
+    canvasMapa.width = 650; canvasMapa.height = 320;
+    const ctx = canvasMapa.getContext('2d');
+    ctx.clearRect(0,0,canvasMapa.width,canvasMapa.height);
+  }
 
   setTimeout(() => {
     const filtrados = filtrarDatos();
@@ -434,7 +449,7 @@ function abrirInforme() {
       else if (y >= 2018 && y <= 2025) tramos["2018-2025"]++;
       else tramos["Antes de 2004"]++;
     });
-    new Chart(document.getElementById('chartPieTramos'), {
+    charts.tramos = new Chart(document.getElementById('chartPieTramos'), {
       type: 'pie',
       data: {
         labels: Object.keys(tramos),
@@ -458,7 +473,7 @@ function abrirInforme() {
       const clase = d.clase_objeto || "Desconocido";
       clases[clase] = (clases[clase] || 0) + 1;
     });
-    new Chart(document.getElementById('chartBarClases'), {
+    charts.clases = new Chart(document.getElementById('chartBarClases'), {
       type: 'bar',
       data: {
         labels: Object.keys(clases),
@@ -475,9 +490,9 @@ function abrirInforme() {
     const tiposMasa = {};
     filtrados.forEach(d => {
       const tipo = d.clase_objeto || "Desconocido";
-      tiposMasa[tipo] = (tiposMasa[tipo] || 0) + getMasaReingresadaKg(d);
+      tiposMasa[tipo] = (tiposMasa[tipo] || 0) + Number(getMasaReingresadaKg(d) || 0);
     });
-    new Chart(document.getElementById('chartBarTipoMasa'), {
+    charts.masa = new Chart(document.getElementById('chartBarTipoMasa'), {
       type: 'bar',
       data: {
         labels: Object.keys(tiposMasa),
@@ -499,7 +514,7 @@ function abrirInforme() {
       else if (t < 10) tiempos["5-10 años"]++;
       else tiempos[">10 años"]++;
     });
-    new Chart(document.getElementById('chartPieTiempo'), {
+    charts.tiempos = new Chart(document.getElementById('chartPieTiempo'), {
       type: 'pie',
       data: {
         labels: Object.keys(tiempos),
@@ -518,7 +533,6 @@ function abrirInforme() {
     });
 
     // --- Mapa filtrado en el informe: genera imagen ---
-    const canvasMapa = document.getElementById('canvasMapaInforme');
     if (canvasMapa) {
       const ctx = canvasMapa.getContext('2d');
       ctx.clearRect(0,0,canvasMapa.width,canvasMapa.height);
@@ -539,11 +553,24 @@ function abrirInforme() {
       const img = document.getElementById('imgMapaInforme');
       img.src = canvasMapa.toDataURL("image/png");
       img.classList.remove('d-none');
+      img.style.width = "100%";
+      img.style.maxWidth = "650px";
+      img.style.height = "auto";
     }
     document.getElementById('informe-loading').style.display = "none";
   }, 600);
 }
 
+// --- Al cerrar modal, limpiar informe para el próximo ---
+document.getElementById('informeModal').addEventListener('hidden.bs.modal', () => {
+  Object.values(charts).forEach(c=>{ if(c) c.destroy(); });
+  charts = {};
+  document.getElementById('informe-resumen').innerText = "";
+  document.getElementById('imgMapaInforme').src = "";
+  document.getElementById('imgMapaInforme').classList.add('d-none');
+});
+
+// --- Exportar PDF ---
 function exportInformePDF() {
   const doc = new window.jspdf.jsPDF("l", "pt", "a4");
   doc.setFontSize(20);
@@ -556,20 +583,20 @@ function exportInformePDF() {
     const chartCanvas = document.getElementById(canvasId);
     if (chartCanvas) {
       const imgData = chartCanvas.toDataURL("image/png");
-      doc.addImage(imgData, "PNG", 40, y, 320, 180);
+      doc.addImage(imgData, "PNG", 40, y, 270, 140);
     }
   };
   addChart('chartPieTramos', 90);
-  addChart('chartBarClases', 280);
-  addChart('chartBarTipoMasa', 470);
-  addChart('chartPieTiempo', 660);
+  addChart('chartBarClases', 240);
+  addChart('chartBarTipoMasa', 390);
+  addChart('chartPieTiempo', 540);
 
   // Mapa
   const imgMapa = document.getElementById('imgMapaInforme');
   if (imgMapa && imgMapa.src) {
     doc.addPage();
     doc.text("Mapa de reentradas filtradas", 30, 40);
-    doc.addImage(imgMapa.src, "PNG", 40, 60, 600, 330);
+    doc.addImage(imgMapa.src, "PNG", 40, 60, 600, 320);
   }
   doc.save("informe-debris.pdf");
 }
