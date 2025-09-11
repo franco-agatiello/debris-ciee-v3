@@ -104,3 +104,35 @@ body > .container-fluid { width: 100vw !important; max-width: 100vw !important; 
 .leaflet-popup-content .btn-warning { background: #ff9900; border: none; color: #fff; }
 .leaflet-popup-content .btn-info:hover, .leaflet-popup-content .btn-warning:hover { opacity: 0.8; }
 #orbita3DContainer { width: 100%; height: 70vh; max-height: 500px; }
+
+/* --- Mejoras para el selector de constelaciones (toggle más visual) --- */
+.btn-group.advanced-toggle label.btn {
+  font-weight: 600;
+  font-size: 1em;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  border-radius: 0 !important;
+  border: 1px solid #ccc;
+  background: #f4f6fa;
+  color: #333;
+}
+.btn-group.advanced-toggle label.btn:first-child { border-radius: 0.6rem 0 0 0.6rem !important; }
+.btn-group.advanced-toggle label.btn:last-child { border-radius: 0 0.6rem 0.6rem 0 !important; }
+.btn-group.advanced-toggle input:checked + label.btn {
+  background: #3f51b5;
+  color: #fff;
+  border-color: #3f51b5;
+  box-shadow: 0 2px 8px #3f51b533;
+}
+
+/* --- Selección rectangular más gráfica en el mapa --- */
+.leaflet-interactive.selecting-rect {
+  stroke-dasharray: 6 3;
+  stroke: #0d6efd;
+  fill: #0d6efd55;
+  animation: dashmove 1s linear infinite;
+}
+@keyframes dashmove {
+  to {
+    stroke-dashoffset: 18;
+  }
+}
