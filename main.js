@@ -74,9 +74,9 @@ function poblarDropdown(menuId, btnId, items, etiquetaTodos="Todos"){
 }
 
 function obtenerFiltros(){
-  const constAll = document.getElementById('const-all').checked;
-  const constYes = document.getElementById('const-yes').checked;
-  const constNo  = document.getElementById('const-no').checked;
+  const constTodas = document.getElementById('const-todas').checked;
+  const constSi    = document.getElementById('const-si').checked;
+  const constNo    = document.getElementById('const-no').checked;
 
   return {
     pais: document.getElementById("dropdownPaisBtn").dataset.value ?? "",
@@ -87,7 +87,8 @@ function obtenerFiltros(){
     masaOrbitaMin: document.getElementById("masa-orbita-min").value,
     masaOrbitaMax: document.getElementById("masa-orbita-max").value,
     clase_objeto: document.getElementById("dropdownClaseBtn").dataset.value ?? "",
-    constelacion: constAll ? "todas" : (constYes ? "si" : "no"),
+    // Cambiamos para que funcione con los nuevos radios:
+    constelacion: constTodas ? "todas" : (constSi ? "si" : "no"),
     latMin: document.getElementById("lat-min").value,
     latMax: document.getElementById("lat-max").value,
     lonMin: document.getElementById("lon-min").value,
