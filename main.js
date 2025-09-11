@@ -42,13 +42,15 @@ function anio(str){ if(!str) return null; const y = parseInt(String(str).slice(0
 function numOrNull(v){ if(v===""||v==null) return null; const n=Number(v); return Number.isFinite(n)?n:null; }
 function getLat(d){ return numOrNull(d?.lugar_caida?.lat ?? d?.lat ?? d?.latitude ?? d?.latitud ?? d?.Lat); }
 function getLon(d){ return numOrNull(d?.lugar_caida?.lon ?? d?.lon ?? d?.longitude ?? d?.longitud ?? d?.Lon); }
-function getMasaReingresadaKg(d){
-  const keys = ["masa_reingresada_kg","masa_reingreso_kg","masa_reentrada","masa_reentrada_kg","tamano_caida_kg","masa_en_orbita"];
-  for (const k of keys) {
-    const v = Number(d?.[k]);
-    if (Number.isFinite(v)) return v;
-  }
-  return 0;
+
+// ----------- CLAVE: SOLO USAR masa_en_orbita PARA LA GRÁFICA DE MASA ----------
+function getMasaReingresadaKg(d) {
+  return Number(d.masa_en_orbita) || 0;
+}
+
+// ----------- CLAVE: SOLO USAR dias_en_orbita PARA LA GRÁFICA DE TIEMPO ----------
+function getDiasEnOrbita(d){
+  return Number(d.dias_en_orbita) || 0;
 }
 
 function poblarDropdown(menuId, btnId, items, etiquetaTodos="Todos"){
@@ -490,7 +492,7 @@ function abrirInforme() {
     const tiposMasa = {};
     filtrados.forEach(d => {
       const tipo = d.clase_objeto || "Desconocido";
-      tiposMasa[tipo] = (tiposMasa[tipo] || 0) + Number(getMasaReingresadaKg(d) || 0);
+      tiposMasa[tipo] = (tiposMasa[tipo] || 0) + getMasaReingresadaKg(d);
     });
     charts.masa = new Chart(document.getElementById('chartBarTipoMasa'), {
       type: 'bar',
@@ -502,16 +504,27 @@ function abrirInforme() {
           backgroundColor: '#e53935'
         }]
       },
-      options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+      options: {
+        indexAxis: 'y',
+        plugins: { legend: { display: false }, tooltip: { enabled: true } },
+        scales: {
+          x: {
+            title: { display: true, text: 'Masa total reingresada (kg)' },
+            beginAtZero: true,
+            ticks: { stepSize: 1 }
+          }
+        }
+      }
     });
 
     // --- Gráfica: Tiempo en órbita (Pie) ---
     const tiempos = { "<1 año": 0, "1-5 años": 0, "5-10 años": 0, ">10 años": 0 };
     filtrados.forEach(d => {
-      const t = Number(d.tiempo_en_orbita) || 0;
-      if (t < 1) tiempos["<1 año"]++;
-      else if (t < 5) tiempos["1-5 años"]++;
-      else if (t < 10) tiempos["5-10 años"]++;
+      const dias = getDiasEnOrbita(d);
+      const años = dias / 365.25;
+      if (años < 1) tiempos["<1 año"]++;
+      else if (años < 5) tiempos["1-5 años"]++;
+      else if (años < 10) tiempos["5-10 años"]++;
       else tiempos[">10 años"]++;
     });
     charts.tiempos = new Chart(document.getElementById('chartPieTiempo'), {
