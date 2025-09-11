@@ -9,19 +9,6 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
   <link rel="stylesheet" href="style.css"/>
-  <style>
-    .selecting-rect { pointer-events: none; border: 2px dashed #0d6efd; background: rgba(13,110,253,.08); position: absolute; z-index: 5000; }
-    .chart-container { min-height: 220px; padding: 12px 8px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(44,62,80,0.07); }
-    .chart-container canvas { max-width: 98%; max-height: 200px; margin: 0 auto; display: block; }
-    #informe-resumen { font-size: 0.97em; font-weight: 500; }
-    #imgMapaInforme { border: 1px solid #e5e7eb; border-radius: 8px; }
-    .modal-xl { min-width: 97vw; }
-    @media (max-width: 900px) {
-      .modal-xl { min-width: 100vw; }
-      .chart-container { min-height: 180px; padding: 7px 3px; }
-      #imgMapaInforme { max-width: 98vw; }
-    }
-  </style>
   <script type="importmap">
     {
       "imports": {
@@ -133,13 +120,13 @@
             </h2>
             <div id="collapseConst" class="accordion-collapse collapse" aria-labelledby="headingConst" data-bs-parent="#filtrosAccordion">
               <div class="accordion-body">
-                <div class="btn-group w-100 mb-2" role="group" aria-label="Constelaciones">
-                  <input type="radio" class="btn-check" name="rb-const" id="const-all" autocomplete="off" checked>
-                  <label class="btn btn-outline-secondary" for="const-all">Todas</label>
-                  <input type="radio" class="btn-check" name="rb-const" id="const-yes" autocomplete="off">
-                  <label class="btn btn-outline-secondary" for="const-yes">En constelación</label>
+                <div class="btn-group btn-group-constelacion w-100 mb-2" role="group" aria-label="Constelaciones">
+                  <input type="radio" class="btn-check" name="rb-const" id="const-todas" autocomplete="off" checked>
+                  <label class="btn btn-outline-secondary" for="const-todas">Todas</label>
+                  <input type="radio" class="btn-check" name="rb-const" id="const-si" autocomplete="off">
+                  <label class="btn btn-outline-secondary" for="const-si">Constelaciones</label>
                   <input type="radio" class="btn-check" name="rb-const" id="const-no" autocomplete="off">
-                  <label class="btn btn-outline-secondary" for="const-no">No constelación</label>
+                  <label class="btn btn-outline-secondary" for="const-no">Sin constelaciones</label>
                 </div>
               </div>
             </div>
