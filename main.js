@@ -74,9 +74,10 @@ function poblarDropdown(menuId, btnId, items, etiquetaTodos="Todos"){
 }
 
 function obtenerFiltros(){
-  const constTodas = document.getElementById('const-todas').checked;
-  const constSi    = document.getElementById('const-si').checked;
-  const constNo    = document.getElementById('const-no').checked;
+  // Botón de constelaciones: "Todas", "En constelación", "No constelación"
+  const constAll = document.getElementById('const-all').checked;
+  const constYes = document.getElementById('const-yes').checked;
+  const constNo  = document.getElementById('const-no').checked;
 
   return {
     pais: document.getElementById("dropdownPaisBtn").dataset.value ?? "",
@@ -87,8 +88,7 @@ function obtenerFiltros(){
     masaOrbitaMin: document.getElementById("masa-orbita-min").value,
     masaOrbitaMax: document.getElementById("masa-orbita-max").value,
     clase_objeto: document.getElementById("dropdownClaseBtn").dataset.value ?? "",
-    // Cambiamos para que funcione con los nuevos radios:
-    constelacion: constTodas ? "todas" : (constSi ? "si" : "no"),
+    constelacion: constAll ? "todas" : (constYes ? "si" : "no"),
     latMin: document.getElementById("lat-min").value,
     latMax: document.getElementById("lat-max").value,
     lonMin: document.getElementById("lon-min").value,
@@ -229,7 +229,7 @@ window.mostrarTrayectoria = function(index) {
   const d = filtrarDatos()[index];
   if (!d.tle1 || !d.tle2) return alert("No hay TLE para este debris.");
 
-  // --- ADVERTENCIA DE DIFERENCIA DE TIEMPO ---
+  // Advertencia diferencia TLE
   let mensajeDiferencia = '';
   if (d.dias_diferencia !== undefined && d.dias_diferencia !== null) {
     const horas = (d.dias_diferencia * 24).toFixed(2);
@@ -302,7 +302,7 @@ window.mostrarOrbita3D = function(index) {
     return alert("No hay TLE para este debris.");
   }
 
-  // --- ADVERTENCIA DE DIFERENCIA DE TIEMPO ---
+  // Advertencia diferencia TLE
   let mensajeDiferencia = '';
   if (d.dias_diferencia !== undefined && d.dias_diferencia !== null) {
     const horas = (d.dias_diferencia * 24).toFixed(2);
