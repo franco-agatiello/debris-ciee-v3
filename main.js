@@ -227,8 +227,18 @@ function mostrarLeyendaCalor(){
 window.mostrarTrayectoria = function(index) {
   const d = filtrarDatos()[index];
   if (!d.tle1 || !d.tle2) return alert("No hay TLE para este debris.");
+
+  // --- ADVERTENCIA DE DIFERENCIA DE TIEMPO ---
+  let mensajeDiferencia = '';
+  if (d.dias_diferencia !== undefined && d.dias_diferencia !== null) {
+    const horas = (d.dias_diferencia * 24).toFixed(2);
+    mensajeDiferencia = `<div class="alert alert-warning p-2 mb-3" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Advertencia:</strong> Diferencia de tiempo estimada entre la caída y los últimos datos orbitales (TLE): <b>${horas} horas</b></div>`;
+  }
   const infoDiv = document.getElementById('trayectoriaInfo');
-  infoDiv.innerHTML = "";
+  if (infoDiv) {
+    infoDiv.innerHTML = mensajeDiferencia;
+  }
+
   setTimeout(() => {
     if (mapaTrayectoria) { mapaTrayectoria.remove(); mapaTrayectoria = null; }
     mapaTrayectoria = L.map('mapTrayectoria').setView([getLat(d), getLon(d)], 3);
@@ -290,8 +300,18 @@ window.mostrarOrbita3D = function(index) {
   if (!d.tle1 || !d.tle2) {
     return alert("No hay TLE para este debris.");
   }
+
+  // --- ADVERTENCIA DE DIFERENCIA DE TIEMPO ---
+  let mensajeDiferencia = '';
+  if (d.dias_diferencia !== undefined && d.dias_diferencia !== null) {
+    const horas = (d.dias_diferencia * 24).toFixed(2);
+    mensajeDiferencia = `<div class="alert alert-warning p-2 mb-3" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Advertencia:</strong> Diferencia de tiempo estimada entre la caída y los últimos datos orbitales (TLE): <b>${horas} horas</b></div>`;
+  }
   const infoDiv = document.getElementById('orbita3DInfo');
-  infoDiv.innerHTML = "";
+  if (infoDiv) {
+    infoDiv.innerHTML = mensajeDiferencia;
+  }
+
   const modalElement = document.getElementById('modalOrbita3D');
   const modal = new bootstrap.Modal(modalElement);
   modalElement.addEventListener('shown.bs.modal', function onModalShown() {
