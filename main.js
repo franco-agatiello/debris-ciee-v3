@@ -383,21 +383,43 @@ function listeners(){
 
 // --- Selección rectangular ---
 let rectSeleccion = null, seleccionActiva = false, startLL = null;
+function mostrarInstruccionSeleccion() {
+  // Crea un div flotante con el mensaje, si no existe
+  let instr = document.getElementById('map-select-instr');
+  if (!instr) {
+    instr = document.createElement('div');
+    instr.id = 'map-select-instr';
+    instr.className = 'map-select-instr';
+    instr.innerText = 'Haz clic y arrastra en el mapa para seleccionar una zona';
+    document.body.appendChild(instr);
+  }
+  instr.style.display = 'block';
+  // Coloca el cursor en modo crosshair
+  document.getElementById('map').style.cursor = 'crosshair';
+}
+function ocultarInstruccionSeleccion() {
+  let instr = document.getElementById('map-select-instr');
+  if (instr) instr.style.display = 'none';
+  document.getElementById('map').style.cursor = '';
+}
+
 function activarSeleccionRect(){
   if (seleccionActiva) return;
   seleccionActiva = true;
+  mostrarInstruccionSeleccion();
   mapa.dragging.disable();
   let moving = false;
   function onDown(e){ startLL = e.latlng; moving = true; if (rectSeleccion) { mapa.removeLayer(rectSeleccion); rectSeleccion=null; } }
   function onMove(e){
     if (!moving || !startLL) return;
     const b = L.latLngBounds(startLL, e.latlng);
-    if (!rectSeleccion) rectSeleccion = L.rectangle(b, {color:'#0d6efd',weight:1,fillOpacity:0.1}).addTo(mapa);
+    if (!rectSeleccion) rectSeleccion = L.rectangle(b, {color:'#0d6efd',weight:2,fillOpacity:0.15, className:'selecting-rect'}).addTo(mapa);
     else rectSeleccion.setBounds(b);
   }
   function onUp(){
     moving = false; seleccionActiva = false; mapa.dragging.enable();
     mapa.off('mousedown', onDown); mapa.off('mousemove', onMove); mapa.off('mouseup', onUp);
+    ocultarInstruccionSeleccion();
     if (!rectSeleccion) return;
     const b = rectSeleccion.getBounds();
     document.getElementById('lat-min').value = Math.min(b.getSouth(), b.getNorth()).toFixed(4);
