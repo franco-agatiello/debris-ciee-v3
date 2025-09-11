@@ -39,70 +39,143 @@
           <img src="img/Captura de pantalla 2025-06-06 211123.png" alt="Logo CIEE" class="sidebar-logo mb-3">
         </a>
         <h4>Filtros</h4>
-        <form id="filter-form">
-          <!-- País -->
-          <label>País de origen:</label>
-          <div class="dropdown mb-2" id="pais-dropdown">
-            <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="dropdownPaisBtn" data-bs-toggle="dropdown" aria-expanded="false" data-value="">
-              Todos
-            </button>
-            <ul class="dropdown-menu w-100" id="dropdownPaisMenu" style="max-height:220px; overflow-y:auto;"></ul>
-          </div>
-          <!-- Clase -->
-          <label>Clase de objeto:</label>
-          <div class="dropdown mb-2" id="clase-dropdown">
-            <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="dropdownClaseBtn" data-bs-toggle="dropdown" aria-expanded="false" data-value="">
-              Seleccionar clase
-            </button>
-            <ul class="dropdown-menu w-100" id="dropdownClaseMenu" style="max-height:220px; overflow-y:auto;"></ul>
-          </div>
-          <!-- Fecha -->
-          <label>Fecha de reentrada:</label>
-          <div class="row g-1 mb-2">
-            <div class="col"><input type="date" class="form-control" id="fecha-desde"></div>
-            <div class="col"><input type="date" class="form-control" id="fecha-hasta"></div>
-          </div>
-          <!-- Inclinación -->
-          <label>Inclinación órbita (°):</label>
-          <div class="row g-1 mb-2">
-            <div class="col"><input type="number" class="form-control" id="inclinacion-min" placeholder="Mín" min="0" max="180"></div>
-            <div class="col"><input type="number" class="form-control" id="inclinacion-max" placeholder="Máx" min="0" max="180"></div>
-          </div>
-          <!-- Masa -->
-          <label>Masa en órbita (kg):</label>
-          <div class="row g-1 mb-2">
-            <div class="col"><input type="number" class="form-control" id="masa-orbita-min" placeholder="Mín" min="0"></div>
-            <div class="col"><input type="number" class="form-control" id="masa-orbita-max" placeholder="Máx" min="0"></div>
-          </div>
-          <!-- Constelación -->
-          <label>Constelaciones:</label>
-          <div class="btn-group w-100 mb-2" role="group" aria-label="Constelaciones">
-            <input type="radio" class="btn-check" name="rb-const" id="const-all" autocomplete="off" checked>
-            <label class="btn btn-outline-secondary" for="const-all">Todas</label>
-            <input type="radio" class="btn-check" name="rb-const" id="const-yes" autocomplete="off">
-            <label class="btn btn-outline-secondary" for="const-yes">En constelación</label>
-            <input type="radio" class="btn-check" name="rb-const" id="const-no" autocomplete="off">
-            <label class="btn btn-outline-secondary" for="const-no">No constelación</label>
-          </div>
-          <!-- Región (Lat/Lon) + selección rectangular -->
-          <div class="card p-2 mb-2">
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="fw-semibold">Región (lat/lon)</span>
-              <div class="btn-group">
-                <button class="btn btn-sm btn-outline-primary" id="btn-select-rect">
-                  <i class="bi bi-bounding-box"></i> Seleccionar Zona
-                </button>
-                <button class="btn btn-sm btn-outline-secondary" id="btn-clear-rect">Limpiar</button>
+        <!-- INICIO: Filtros en acordeón Bootstrap -->
+        <div class="accordion mb-2" id="filtrosAccordion">
+          <!-- País de origen -->
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingPais">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePais" aria-expanded="true" aria-controls="collapsePais">
+                País de origen
+              </button>
+            </h2>
+            <div id="collapsePais" class="accordion-collapse collapse show" aria-labelledby="headingPais" data-bs-parent="#filtrosAccordion">
+              <div class="accordion-body">
+                <div class="dropdown mb-2" id="pais-dropdown">
+                  <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="dropdownPaisBtn" data-bs-toggle="dropdown" aria-expanded="false" data-value="">
+                    Todos
+                  </button>
+                  <ul class="dropdown-menu w-100" id="dropdownPaisMenu" style="max-height:220px; overflow-y:auto;"></ul>
+                </div>
               </div>
             </div>
-            <div class="row g-1 mt-1">
-              <div class="col-6"><input type="number" step="any" class="form-control" id="lat-min" placeholder="Lat mín"></div>
-              <div class="col-6"><input type="number" step="any" class="form-control" id="lat-max" placeholder="Lat máx"></div>
-              <div class="col-6"><input type="number" step="any" class="form-control" id="lon-min" placeholder="Lon mín"></div>
-              <div class="col-6"><input type="number" step="any" class="form-control" id="lon-max" placeholder="Lon máx"></div>
+          </div>
+          <!-- Clase de objeto -->
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingClase">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseClase" aria-expanded="false" aria-controls="collapseClase">
+                Clase de objeto
+              </button>
+            </h2>
+            <div id="collapseClase" class="accordion-collapse collapse" aria-labelledby="headingClase" data-bs-parent="#filtrosAccordion">
+              <div class="accordion-body">
+                <div class="dropdown mb-2" id="clase-dropdown">
+                  <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="dropdownClaseBtn" data-bs-toggle="dropdown" aria-expanded="false" data-value="">
+                    Seleccionar clase
+                  </button>
+                  <ul class="dropdown-menu w-100" id="dropdownClaseMenu" style="max-height:220px; overflow-y:auto;"></ul>
+                </div>
+              </div>
             </div>
           </div>
-        </form>
+          <!-- Fecha de reentrada -->
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingFecha">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFecha" aria-expanded="false" aria-controls="collapseFecha">
+                Fecha de reentrada
+              </button>
+            </h2>
+            <div id="collapseFecha" class="accordion-collapse collapse" aria-labelledby="headingFecha" data-bs-parent="#filtrosAccordion">
+              <div class="accordion-body">
+                <div class="row g-1 mb-2">
+                  <div class="col"><input type="date" class="form-control" id="fecha-desde"></div>
+                  <div class="col"><input type="date" class="form-control" id="fecha-hasta"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Inclinación órbita -->
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingIncl">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIncl" aria-expanded="false" aria-controls="collapseIncl">
+                Inclinación órbita (°)
+              </button>
+            </h2>
+            <div id="collapseIncl" class="accordion-collapse collapse" aria-labelledby="headingIncl" data-bs-parent="#filtrosAccordion">
+              <div class="accordion-body">
+                <div class="row g-1 mb-2">
+                  <div class="col"><input type="number" class="form-control" id="inclinacion-min" placeholder="Mín" min="0" max="180"></div>
+                  <div class="col"><input type="number" class="form-control" id="inclinacion-max" placeholder="Máx" min="0" max="180"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Masa en órbita -->
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingMasa">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMasa" aria-expanded="false" aria-controls="collapseMasa">
+                Masa en órbita (kg)
+              </button>
+            </h2>
+            <div id="collapseMasa" class="accordion-collapse collapse" aria-labelledby="headingMasa" data-bs-parent="#filtrosAccordion">
+              <div class="accordion-body">
+                <div class="row g-1 mb-2">
+                  <div class="col"><input type="number" class="form-control" id="masa-orbita-min" placeholder="Mín" min="0"></div>
+                  <div class="col"><input type="number" class="form-control" id="masa-orbita-max" placeholder="Máx" min="0"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Constelaciones -->
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingConst">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseConst" aria-expanded="false" aria-controls="collapseConst">
+                Constelaciones
+              </button>
+            </h2>
+            <div id="collapseConst" class="accordion-collapse collapse" aria-labelledby="headingConst" data-bs-parent="#filtrosAccordion">
+              <div class="accordion-body">
+                <div class="btn-group w-100 mb-2" role="group" aria-label="Constelaciones">
+                  <input type="radio" class="btn-check" name="rb-const" id="const-all" autocomplete="off" checked>
+                  <label class="btn btn-outline-secondary" for="const-all">Todas</label>
+                  <input type="radio" class="btn-check" name="rb-const" id="const-yes" autocomplete="off">
+                  <label class="btn btn-outline-secondary" for="const-yes">En constelación</label>
+                  <input type="radio" class="btn-check" name="rb-const" id="const-no" autocomplete="off">
+                  <label class="btn btn-outline-secondary" for="const-no">No constelación</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Región (Lat/Lon) + selección rectangular -->
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingRegion">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRegion" aria-expanded="false" aria-controls="collapseRegion">
+                Región (lat/lon)
+              </button>
+            </h2>
+            <div id="collapseRegion" class="accordion-collapse collapse" aria-labelledby="headingRegion" data-bs-parent="#filtrosAccordion">
+              <div class="accordion-body">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <div>
+                    <span class="fw-semibold">Zona geográfica</span>
+                  </div>
+                  <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-primary" id="btn-select-rect">
+                      <i class="bi bi-bounding-box"></i> Seleccionar Zona
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" id="btn-clear-rect">Limpiar</button>
+                  </div>
+                </div>
+                <div class="row g-1 mt-1">
+                  <div class="col-6"><input type="number" step="any" class="form-control" id="lat-min" placeholder="Lat mín"></div>
+                  <div class="col-6"><input type="number" step="any" class="form-control" id="lat-max" placeholder="Lat máx"></div>
+                  <div class="col-6"><input type="number" step="any" class="form-control" id="lon-min" placeholder="Lon mín"></div>
+                  <div class="col-6"><input type="number" step="any" class="form-control" id="lon-max" placeholder="Lon máx"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- FIN: Filtros en acordeón Bootstrap -->
         <button id="btn-informe" class="btn btn-primary w-100 mb-2">Generar informe</button>
         <div class="mt-2 small text-muted">Registros mostrados: <span id="countSpan">0</span></div>
         <div class="mt-4 d-grid gap-2">
