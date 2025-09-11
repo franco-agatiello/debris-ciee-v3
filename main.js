@@ -414,18 +414,162 @@ function limpiarSeleccionRect(){
   actualizarMapa();
 }
 
-// --- Informe y PDF (simplificado ejemplo) ---
+// --- Informe y PDF con Chart.js estéticas ---
 function abrirInforme() {
   const modal = new bootstrap.Modal(document.getElementById('informeModal'));
   modal.show();
-  document.getElementById('informe-resumen').innerText = 
-    `Cantidad de registros visibles: ${filtrarDatos().length}`;
-  // Aquí deberías agregar el código para rellenar tus gráficos con Chart.js
+  document.getElementById('informe-loading').style.display = "flex";
+
+  setTimeout(() => {
+    const filtrados = filtrarDatos();
+    document.getElementById('informe-resumen').innerText =
+      `Cantidad de registros visibles: ${filtrados.length}`;
+
+    // --- Gráfica: Reentradas por tramo (Pie) ---
+    const tramos = { "2004-2010": 0, "2011-2017": 0, "2018-2025": 0, "Antes de 2004": 0 };
+    filtrados.forEach(d => {
+      const y = anio(d.fecha);
+      if (y >= 2004 && y <= 2010) tramos["2004-2010"]++;
+      else if (y >= 2011 && y <= 2017) tramos["2011-2017"]++;
+      else if (y >= 2018 && y <= 2025) tramos["2018-2025"]++;
+      else tramos["Antes de 2004"]++;
+    });
+    new Chart(document.getElementById('chartPieTramos'), {
+      type: 'pie',
+      data: {
+        labels: Object.keys(tramos),
+        datasets: [{
+          data: Object.values(tramos),
+          backgroundColor: ['#3f51b5','#43a047','#e53935','#ffc107'],
+          borderColor: '#fff',
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { display: true },
+          title: { display: false }
+        }
+      }
+    });
+
+    // --- Gráfica: Distribución por clase (Bar) ---
+    const clases = {};
+    filtrados.forEach(d => {
+      const clase = d.clase_objeto || "Desconocido";
+      clases[clase] = (clases[clase] || 0) + 1;
+    });
+    new Chart(document.getElementById('chartBarClases'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(clases),
+        datasets: [{
+          label: 'Cantidad',
+          data: Object.values(clases),
+          backgroundColor: '#3f51b5'
+        }]
+      },
+      options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+    });
+
+    // --- Gráfica: Masa reingresada por tipo (Bar) ---
+    const tiposMasa = {};
+    filtrados.forEach(d => {
+      const tipo = d.clase_objeto || "Desconocido";
+      tiposMasa[tipo] = (tiposMasa[tipo] || 0) + getMasaReingresadaKg(d);
+    });
+    new Chart(document.getElementById('chartBarTipoMasa'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(tiposMasa),
+        datasets: [{
+          label: 'Masa (kg)',
+          data: Object.values(tiposMasa).map(x=>Math.round(x)),
+          backgroundColor: '#e53935'
+        }]
+      },
+      options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+    });
+
+    // --- Gráfica: Tiempo en órbita (Pie) ---
+    const tiempos = { "<1 año": 0, "1-5 años": 0, "5-10 años": 0, ">10 años": 0 };
+    filtrados.forEach(d => {
+      const t = Number(d.tiempo_en_orbita) || 0;
+      if (t < 1) tiempos["<1 año"]++;
+      else if (t < 5) tiempos["1-5 años"]++;
+      else if (t < 10) tiempos["5-10 años"]++;
+      else tiempos[">10 años"]++;
+    });
+    new Chart(document.getElementById('chartPieTiempo'), {
+      type: 'pie',
+      data: {
+        labels: Object.keys(tiempos),
+        datasets: [{
+          data: Object.values(tiempos),
+          backgroundColor: ['#43a047','#ffb300','#e53935','#3f51b5'],
+          borderColor: '#fff',
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { display: true },
+          title: { display: false }
+        }
+      }
+    });
+
+    // --- Mapa filtrado en el informe: genera imagen ---
+    const canvasMapa = document.getElementById('canvasMapaInforme');
+    if (canvasMapa) {
+      const ctx = canvasMapa.getContext('2d');
+      ctx.clearRect(0,0,canvasMapa.width,canvasMapa.height);
+      ctx.fillStyle = "#eef";
+      ctx.fillRect(0,0,canvasMapa.width,canvasMapa.height);
+      // Dibuja puntos
+      filtrados.forEach(d => {
+        const lat = getLat(d), lon = getLon(d);
+        if (lat === null || lon === null) return;
+        const x = (lon+180)/360*canvasMapa.width;
+        const y = canvasMapa.height-(lat+90)/180*canvasMapa.height;
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, 2*Math.PI, false);
+        ctx.fillStyle = "#3f51b5";
+        ctx.fill();
+      });
+      // Mostrar imagen
+      const img = document.getElementById('imgMapaInforme');
+      img.src = canvasMapa.toDataURL("image/png");
+      img.classList.remove('d-none');
+    }
+    document.getElementById('informe-loading').style.display = "none";
+  }, 600);
 }
+
 function exportInformePDF() {
-  // Ejemplo mínimo usando jsPDF
-  const doc = new window.jspdf.jsPDF();
-  doc.text("Informe de Debris Espaciales", 10, 10);
-  doc.text(`Registros visibles: ${filtrarDatos().length}`, 10, 20);
+  const doc = new window.jspdf.jsPDF("l", "pt", "a4");
+  doc.setFontSize(20);
+  doc.text("Informe de Debris Espaciales", 30, 40);
+  doc.setFontSize(12);
+  doc.text(document.getElementById('informe-resumen').innerText, 30, 70);
+
+  // Gráficos
+  const addChart = (canvasId, y) => {
+    const chartCanvas = document.getElementById(canvasId);
+    if (chartCanvas) {
+      const imgData = chartCanvas.toDataURL("image/png");
+      doc.addImage(imgData, "PNG", 40, y, 320, 180);
+    }
+  };
+  addChart('chartPieTramos', 90);
+  addChart('chartBarClases', 280);
+  addChart('chartBarTipoMasa', 470);
+  addChart('chartPieTiempo', 660);
+
+  // Mapa
+  const imgMapa = document.getElementById('imgMapaInforme');
+  if (imgMapa && imgMapa.src) {
+    doc.addPage();
+    doc.text("Mapa de reentradas filtradas", 30, 40);
+    doc.addImage(imgMapa.src, "PNG", 40, 60, 600, 330);
+  }
   doc.save("informe-debris.pdf");
 }
