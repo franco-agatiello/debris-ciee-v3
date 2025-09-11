@@ -74,7 +74,6 @@ function poblarDropdown(menuId, btnId, items, etiquetaTodos="Todos"){
 }
 
 function obtenerFiltros(){
-  // Botón de constelaciones: "Todas", "En constelación", "No constelación"
   const constAll = document.getElementById('const-all').checked;
   const constYes = document.getElementById('const-yes').checked;
   const constNo  = document.getElementById('const-no').checked;
@@ -229,7 +228,7 @@ window.mostrarTrayectoria = function(index) {
   const d = filtrarDatos()[index];
   if (!d.tle1 || !d.tle2) return alert("No hay TLE para este debris.");
 
-  // Advertencia diferencia TLE
+  // --- ADVERTENCIA DE DIFERENCIA DE TIEMPO ---
   let mensajeDiferencia = '';
   if (d.dias_diferencia !== undefined && d.dias_diferencia !== null) {
     const horas = (d.dias_diferencia * 24).toFixed(2);
@@ -302,7 +301,7 @@ window.mostrarOrbita3D = function(index) {
     return alert("No hay TLE para este debris.");
   }
 
-  // Advertencia diferencia TLE
+  // --- ADVERTENCIA DE DIFERENCIA DE TIEMPO ---
   let mensajeDiferencia = '';
   if (d.dias_diferencia !== undefined && d.dias_diferencia !== null) {
     const horas = (d.dias_diferencia * 24).toFixed(2);
