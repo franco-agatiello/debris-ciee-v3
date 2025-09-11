@@ -106,39 +106,48 @@ body > .container-fluid { width: 100vw !important; max-width: 100vw !important; 
 #orbita3DContainer { width: 100%; height: 70vh; max-height: 500px; }
 
 /* ============== Ajustes visuales constelación toggle ============== */
-.btn-group[role="group"][aria-label="Constelaciones"] label.btn {
-  font-size: 0.88em;
+
+/* Botones constelaciones versión pequeña, estilo tab, sin desbordar */
+.btn-group-constelacion label.btn {
+  font-size: 0.93em;
   font-weight: 600;
-  min-width: 97px;
-  max-width: 120px;
-  height: 2.2em;
-  padding: 0 0.4em;
-  line-height: 2.2em;
-  border-radius: 0.6em !important;
+  min-width: 0;
+  width: 33.33%;
+  max-width: 112px;
+  height: 2.1em;
+  padding: 0 0.2em;
+  line-height: 2.1em;
+  border-radius: 0 !important;
+  border-color: #a3a9b1;
+  color: #495057;
+  background: #fff;
   text-align: center;
-  overflow: hidden;
   white-space: nowrap;
+  overflow: hidden;
   text-overflow: ellipsis;
-  transition: background 0.14s, color 0.14s;
+  transition: background 0.18s, color 0.18s;
 }
+.btn-group-constelacion label.btn:first-child { border-radius: 0.5em 0 0 0.5em !important; }
+.btn-group-constelacion label.btn:last-child  { border-radius: 0 0.5em 0.5em 0 !important; }
 
-.btn-group[role="group"][aria-label="Constelaciones"] .btn-check:checked + label.btn,
-.btn-group[role="group"][aria-label="Constelaciones"] label.btn.active {
-  background: #6c757d;
+.btn-group-constelacion .btn-check:checked + label.btn,
+.btn-group-constelacion label.btn.active {
+  background: #646c75;
   color: #fff;
-  border-color: #6c757d;
+  border-color: #646c75;
+  font-weight: 700;
 }
 
-/* Responsive: achica un poco en mobile */
-@media (max-width: 500px) {
-  .btn-group[role="group"][aria-label="Constelaciones"] label.btn {
-    min-width: 77px;
-    max-width: 98px;
-    font-size: 0.80em;
-    height: 2em;
-    line-height: 2em;
+@media (max-width: 480px) {
+  .btn-group-constelacion label.btn {
+    font-size: 0.81em;
+    padding: 0 0.08em;
+    line-height: 1.8em;
+    height: 1.8em;
+    max-width: 82px;
   }
 }
+
 /* ========== Feedback gráfico selección rectangular mapa ========== */
 .leaflet-interactive.selecting-rect {
   stroke-dasharray: 6 3;
