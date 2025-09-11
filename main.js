@@ -11,9 +11,6 @@ const iconoVerde = L.icon({iconUrl:'https://raw.githubusercontent.com/pointhi/le
 const iconoRojo = L.icon({iconUrl:'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',iconSize:[18,29],iconAnchor:[9,29],popupAnchor:[1,-30]});
 const iconoAmarillo = L.icon({iconUrl:'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png',iconSize:[18,29],iconAnchor:[9,29],popupAnchor:[1,-30]});
 
-// CIEE logo for watermark
-const LOGO_WATERMARK_SRC = LOGO_SRC;
-
 let debris = [];
 let mapa, capaPuntos, capaCalor, modo = "puntos";
 let leyendaPuntos, leyendaCalor;
@@ -45,16 +42,24 @@ function anio(str){ if(!str) return null; const y = parseInt(String(str).slice(0
 function numOrNull(v){ if(v===""||v==null) return null; const n=Number(v); return Number.isFinite(n)?n:null; }
 function getLat(d){ return numOrNull(d?.lugar_caida?.lat ?? d?.lat ?? d?.latitude ?? d?.latitud ?? d?.Lat); }
 function getLon(d){ return numOrNull(d?.lugar_caida?.lon ?? d?.lon ?? d?.longitude ?? d?.longitud ?? d?.Lon); }
-function getMasaReingresadaKg(d) { return Number(d.masa_en_orbita) || 0; }
-function getDiasEnOrbita(d){ return Number(d.dias_en_orbita) || 0; }
+
+// ----------- CLAVE: SOLO USAR masa_en_orbita PARA LA GRÁFICA DE MASA ----------
+function getMasaReingresadaKg(d) {
+  return Number(d.masa_en_orbita) || 0;
+}
+
+// ----------- CLAVE: SOLO USAR dias_en_orbita PARA LA GRÁFICA DE TIEMPO ----------
+function getDiasEnOrbita(d){
+  return Number(d.dias_en_orbita) || 0;
+}
 
 function poblarDropdown(menuId, btnId, items, etiquetaTodos="Todos"){
   const menu = document.getElementById(menuId);
   const btn  = document.getElementById(btnId);
   menu.innerHTML = `<li><a class="dropdown-item" href="#" data-value="">${etiquetaTodos}</a></li>` +
     items.map(v=>`<li><a class="dropdown-item" href="#" data-value="${v}">${v}</a></li>`).join("");
-  btn.textContent = etiquetaTodos;
-  btn.dataset.value = "";
+  btn.textContent = etiquetaTodos; // Default selected text
+  btn.dataset.value = ""; // Default selected value
   menu.querySelectorAll(".dropdown-item").forEach(a=>{
     a.addEventListener("click",(e)=>{
       e.preventDefault();
@@ -190,23 +195,6 @@ function actualizarMapa(){
   }
 }
 
-// -- Marca de agua para Chart.js --
-const watermarkPlugin = {
-  id: 'cieeWatermark',
-  beforeDraw: (chart) => {
-    const ctx = chart.ctx;
-    const { width, height } = chart;
-    const img = document.getElementById('logo-ciee-watermark');
-    if (!img || !img.complete) return;
-    ctx.save();
-    ctx.globalAlpha = 0.11;
-    const imgW = width * 0.55;
-    const imgH = imgW * (img.naturalHeight / img.naturalWidth);
-    ctx.drawImage(img, (width-imgW)/2, (height-imgH)/2, imgW, imgH);
-    ctx.restore();
-  }
-};
-
 function mostrarLeyendaPuntos(){
   leyendaPuntos=L.control({position:'bottomright'});
   leyendaPuntos.onAdd=function(map){
@@ -236,10 +224,147 @@ function mostrarLeyendaCalor(){
 }
 
 // --- Trayectoria ---
-// ...igual que antes...
+window.mostrarTrayectoria = function(index) {
+  const d = filtrarDatos()[index];
+  if (!d.tle1 || !d.tle2) return alert("No hay TLE para este debris.");
+  const infoDiv = document.getElementById('trayectoriaInfo');
+  infoDiv.innerHTML = "";
+  setTimeout(() => {
+    if (mapaTrayectoria) { mapaTrayectoria.remove(); mapaTrayectoria = null; }
+    mapaTrayectoria = L.map('mapTrayectoria').setView([getLat(d), getLon(d)], 3);
+    L.tileLayer(
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      { minZoom: 1, maxZoom: 20 }
+    ).addTo(mapaTrayectoria);
+    const satrec = satellite.twoline2satrec(d.tle1, d.tle2);
+    const meanMotion = satrec.no * 1440 / (2 * Math.PI);
+    const periodoMin = 1440 / meanMotion;
+    const vueltas = 4;
+    const minutosATrazar = periodoMin * vueltas;
+    const jday = satrec.epochdays;
+    const year = satrec.epochyr < 57 ? satrec.epochyr + 2000 : satrec.epochyr + 1900;
+    const epochDate = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0) + (jday - 1) * 24 * 60 * 60 * 1000);
+    let segments = [], segment = [], prevLon = null;
+    for (let min = 0; min <= minutosATrazar; min += 1) {
+      const time = new Date(epochDate.getTime() + min * 60000);
+      const gmst = satellite.gstime(time);
+      const pos = satellite.propagate(satrec, time);
+      if (!pos || !pos.position) continue;
+      const geo = satellite.eciToGeodetic(pos.position, gmst);
+      let lat = satellite.degreesLat(geo.latitude);
+      let lon = satellite.degreesLong(geo.longitude);
+      if (isNaN(lat) || isNaN(lon) || Math.abs(lat) > 90) continue;
+      lon = ((lon + 180) % 360 + 360) % 360 - 180;
+      if (prevLon !== null) {
+        let delta = Math.abs(lon - prevLon);
+        if (delta > 30) {
+          if (segment.length > 1) segments.push(segment);
+          segment = [];
+        }
+      }
+      segment.push([lat, lon]);
+      prevLon = lon;
+    }
+    if (segment.length > 1) segments.push(segment);
+    segments.forEach(seg => {
+      L.polyline(seg, { color: "#3f51b5", weight: 2 }).addTo(mapaTrayectoria);
+    });
+    L.marker([getLat(d), getLon(d)])
+      .addTo(mapaTrayectoria)
+      .bindPopup("Punto de caída")
+      .openPopup();
+    if (segments.length && segments[0].length > 1) {
+      let bounds = segments.flat();
+      mapaTrayectoria.fitBounds(bounds, {padding: [20, 20]});
+    } else {
+      mapaTrayectoria.setView([getLat(d), getLon(d)], 3);
+    }
+  }, 300);
+  const modal = new bootstrap.Modal(document.getElementById('modalTrayectoria'));
+  modal.show();
+};
 
 // --- Órbita 3D ---
-// ...igual que antes...
+window.mostrarOrbita3D = function(index) {
+  const d = filtrarDatos()[index];
+  if (!d.tle1 || !d.tle2) {
+    return alert("No hay TLE para este debris.");
+  }
+  const infoDiv = document.getElementById('orbita3DInfo');
+  infoDiv.innerHTML = "";
+  const modalElement = document.getElementById('modalOrbita3D');
+  const modal = new bootstrap.Modal(modalElement);
+  modalElement.addEventListener('shown.bs.modal', function onModalShown() {
+    init(d);
+    animate();
+    modalElement.removeEventListener('shown.bs.modal', onModalShown);
+  });
+  modal.show();
+  let scene, camera, renderer, earth, controls, line;
+  function init(d) {
+    const container = document.getElementById('orbita3DContainer');
+    if (!container) return;
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000010);
+    camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 100000);
+    camera.position.z = radioTierra * 3;
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.innerHTML = '';
+    container.appendChild(renderer.domElement);
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.25;
+    controls.enableZoom = true;
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load(EARTH_IMG_SRC,
+      function(texture) {
+        const geometry = new THREE.SphereGeometry(radioTierra, 64, 64);
+        const material = new THREE.MeshBasicMaterial({ map: texture });
+        earth = new THREE.Mesh(geometry, material);
+        scene.add(earth);
+      },
+      undefined,
+      function(error) {
+        console.error('Error al cargar la textura de la Tierra:', error);
+      }
+    );
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+    plotOrbit(d);
+  }
+  function plotOrbit(d) {
+    const satrec = satellite.twoline2satrec(d.tle1, d.tle2);
+    const meanMotion = satrec.no * 1440 / (2 * Math.PI);
+    const periodoMin = 1440 / meanMotion;
+    const vueltas = 4;
+    const minutosATrazar = periodoMin * vueltas;
+    const epochDate = new Date(Date.UTC(satrec.epochyr < 57 ? satrec.epochyr + 2000 : satrec.epochyr + 1900, 0, 1) + (satrec.epochdays - 1) * 24 * 60 * 60 * 1000);
+    const points = [];
+    for (let min = 0; min <= minutosATrazar; min += 1) {
+      const time = new Date(epochDate.getTime() + min * 60000);
+      const gmst = satellite.gstime(time);
+      const pos = satellite.propagate(satrec, time);
+      if (!pos || !pos.position) continue;
+      const eciPos = pos.position;
+      points.push(new THREE.Vector3(eciPos.x, eciPos.z, -eciPos.y));
+    }
+    if (points.length > 1) {
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      line = new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: 0xff9900 }));
+      scene.add(line);
+    }
+  }
+  function animate() {
+    requestAnimationFrame(animate);
+    if (earth) {
+      earth.rotation.y += 0.01;
+    }
+    controls.update();
+    renderer.render(scene, camera);
+  }
+}
 
 // --- Listeners ---
 function listeners(){
@@ -257,10 +382,42 @@ function listeners(){
 }
 
 // --- Selección rectangular ---
-// ...igual que antes...
+let rectSeleccion = null, seleccionActiva = false, startLL = null;
+function activarSeleccionRect(){
+  if (seleccionActiva) return;
+  seleccionActiva = true;
+  mapa.dragging.disable();
+  let moving = false;
+  function onDown(e){ startLL = e.latlng; moving = true; if (rectSeleccion) { mapa.removeLayer(rectSeleccion); rectSeleccion=null; } }
+  function onMove(e){
+    if (!moving || !startLL) return;
+    const b = L.latLngBounds(startLL, e.latlng);
+    if (!rectSeleccion) rectSeleccion = L.rectangle(b, {color:'#0d6efd',weight:1,fillOpacity:0.1}).addTo(mapa);
+    else rectSeleccion.setBounds(b);
+  }
+  function onUp(){
+    moving = false; seleccionActiva = false; mapa.dragging.enable();
+    mapa.off('mousedown', onDown); mapa.off('mousemove', onMove); mapa.off('mouseup', onUp);
+    if (!rectSeleccion) return;
+    const b = rectSeleccion.getBounds();
+    document.getElementById('lat-min').value = Math.min(b.getSouth(), b.getNorth()).toFixed(4);
+    document.getElementById('lat-max').value = Math.max(b.getSouth(), b.getNorth()).toFixed(4);
+    document.getElementById('lon-min').value = Math.min(b.getWest(), b.getEast()).toFixed(4);
+    document.getElementById('lon-max').value = Math.max(b.getWest(), b.getEast()).toFixed(4);
+    actualizarMapa();
+  }
+  mapa.on('mousedown', onDown);
+  mapa.on('mousemove', onMove);
+  mapa.on('mouseup', onUp);
+}
+function limpiarSeleccionRect(){
+  if (rectSeleccion) { mapa.removeLayer(rectSeleccion); rectSeleccion=null; }
+  ['lat-min','lat-max','lon-min','lon-max'].forEach(id=>document.getElementById(id).value='');
+  actualizarMapa();
+}
 
 // --- Informe y PDF con Chart.js estéticas y correcciones ---
-let charts = {};
+let charts = {}; // Para limpiar instancias previas
 
 function abrirInforme() {
   const modal = new bootstrap.Modal(document.getElementById('informeModal'));
@@ -309,8 +466,7 @@ function abrirInforme() {
           legend: { display: true },
           title: { display: false }
         }
-      },
-      plugins: [watermarkPlugin]
+      }
     });
 
     // --- Gráfica: Distribución por clase (Bar) ---
@@ -329,8 +485,7 @@ function abrirInforme() {
           backgroundColor: '#3f51b5'
         }]
       },
-      options: { indexAxis: 'y', plugins: { legend: { display: false } } },
-      plugins: [watermarkPlugin]
+      options: { indexAxis: 'y', plugins: { legend: { display: false } } }
     });
 
     // --- Gráfica: Masa reingresada por tipo (Bar) ---
@@ -359,8 +514,7 @@ function abrirInforme() {
             ticks: { stepSize: 1 }
           }
         }
-      },
-      plugins: [watermarkPlugin]
+      }
     });
 
     // --- Gráfica: Tiempo en órbita (Pie) ---
@@ -388,8 +542,7 @@ function abrirInforme() {
           legend: { display: true },
           title: { display: false }
         }
-      },
-      plugins: [watermarkPlugin]
+      }
     });
 
     // --- Mapa filtrado en el informe: genera imagen ---
@@ -398,16 +551,6 @@ function abrirInforme() {
       ctx.clearRect(0,0,canvasMapa.width,canvasMapa.height);
       ctx.fillStyle = "#eef";
       ctx.fillRect(0,0,canvasMapa.width,canvasMapa.height);
-      // Marca de agua en el mapa
-      const logoImg = document.getElementById('logo-ciee-watermark');
-      if (logoImg && logoImg.complete) {
-        ctx.save();
-        ctx.globalAlpha = 0.12;
-        const imgW = canvasMapa.width * 0.55;
-        const imgH = imgW * (logoImg.naturalHeight / logoImg.naturalWidth);
-        ctx.drawImage(logoImg, (canvasMapa.width-imgW)/2, (canvasMapa.height-imgH)/2, imgW, imgH);
-        ctx.restore();
-      }
       // Dibuja puntos
       filtrados.forEach(d => {
         const lat = getLat(d), lon = getLon(d);
@@ -421,7 +564,7 @@ function abrirInforme() {
       });
       // Mostrar imagen
       const img = document.getElementById('imgMapaInforme');
-      img.src = canvasMapa.toDataURL("image/png", 1.0);
+      img.src = canvasMapa.toDataURL("image/png");
       img.classList.remove('d-none');
       img.style.width = "100%";
       img.style.maxWidth = "650px";
@@ -443,54 +586,29 @@ document.getElementById('informeModal').addEventListener('hidden.bs.modal', () =
 // --- Exportar PDF ---
 function exportInformePDF() {
   const doc = new window.jspdf.jsPDF("l", "pt", "a4");
-  const logoImg = document.getElementById('logo-ciee-watermark');
-  // Marca de agua en fondo de cada página
-  function drawWatermark(doc, pageW, pageH) {
-    if (logoImg && logoImg.complete) {
-      doc.setGState(new doc.GState({opacity: 0.11}));
-      doc.addImage(logoImg, "PNG",
-        pageW/2-175, pageH/2-55, // centrado
-        350, 110
-      );
-      doc.setGState(new doc.GState({opacity: 1}));
-    }
-  }
-
   doc.setFontSize(20);
   doc.text("Informe de Debris Espaciales", 30, 40);
   doc.setFontSize(12);
   doc.text(document.getElementById('informe-resumen').innerText, 30, 70);
 
-  // Watermark page 1
-  drawWatermark(doc, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-
-  // Gráficos, en vertical, en alta calidad
-  let y = 90;
-  const chartIds = [
-    {id: 'chartPieTramos', title: 'Reentradas por tramo'},
-    {id: 'chartBarClases', title: 'Distribución por clase'},
-    {id: 'chartBarTipoMasa', title: 'Masa total reingresada (kg) por tipo'},
-    {id: 'chartPieTiempo', title: 'Tiempo en órbita'}
-  ];
-  chartIds.forEach(({id, title}) => {
-    const chartCanvas = document.getElementById(id);
+  // Gráficos
+  const addChart = (canvasId, y) => {
+    const chartCanvas = document.getElementById(canvasId);
     if (chartCanvas) {
-      doc.setFontSize(14);
-      doc.text(title, 40, y);
-      y += 20;
-      const imgData = chartCanvas.toDataURL("image/png", 1.0);
-      doc.addImage(imgData, "PNG", 40, y, 360, 150);
-      y += 160;
+      const imgData = chartCanvas.toDataURL("image/png");
+      doc.addImage(imgData, "PNG", 40, y, 270, 140);
     }
-  });
+  };
+  addChart('chartPieTramos', 90);
+  addChart('chartBarClases', 240);
+  addChart('chartBarTipoMasa', 390);
+  addChart('chartPieTiempo', 540);
 
-  // Nueva página para el mapa
-  doc.addPage();
-  drawWatermark(doc, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-  doc.setFontSize(15);
-  doc.text("Mapa de reentradas filtradas", 40, 40);
+  // Mapa
   const imgMapa = document.getElementById('imgMapaInforme');
   if (imgMapa && imgMapa.src) {
+    doc.addPage();
+    doc.text("Mapa de reentradas filtradas", 30, 40);
     doc.addImage(imgMapa.src, "PNG", 40, 60, 600, 320);
   }
   doc.save("informe-debris.pdf");
