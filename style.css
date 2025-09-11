@@ -106,64 +106,39 @@ body > .container-fluid { width: 100vw !important; max-width: 100vw !important; 
 #orbita3DContainer { width: 100%; height: 70vh; max-height: 500px; }
 
 /* ============== Ajustes visuales constelación toggle ============== */
-/* --- ESTILO SOLO PARA EL BOTÓN DE CONSTELACIONES (idéntico a tu imagen pero más pequeño) --- */
-.btn-group[aria-label="Constelaciones"] label.btn {
-  font-size: 0.91em;
+.btn-group[role="group"][aria-label="Constelaciones"] label.btn {
+  font-size: 0.88em;
   font-weight: 600;
-  padding: 0.25em 0.1em;
-  min-width: 0;
-  width: 33.33%;
-  max-width: 110px;
-  border-radius: 0 !important;
-  color: #495057;
-  background: #fff;
-  border: 1px solid #a2a8b1;
-  border-right: none;
-  box-shadow: none;
+  min-width: 97px;
+  max-width: 120px;
+  height: 2.2em;
+  padding: 0 0.4em;
+  line-height: 2.2em;
+  border-radius: 0.6em !important;
   text-align: center;
-  white-space: nowrap;
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
-  transition: background 0.16s, color 0.16s, font-weight 0.16s;
-  line-height: 1.30em;
-  height: 2.1em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition: background 0.14s, color 0.14s;
 }
 
-.btn-group[aria-label="Constelaciones"] label.btn:first-child {
-  border-radius: 0.44em 0 0 0.44em !important;
-}
-.btn-group[aria-label="Constelaciones"] label.btn:last-child {
-  border-radius: 0 0.44em 0.44em 0 !important;
-  border-right: 1px solid #a2a8b1;
-}
-
-/* Activo: fondo gris oscuro, texto blanco, negrita */
-.btn-group[aria-label="Constelaciones"] .btn-check:checked + label.btn,
-.btn-group[aria-label="Constelaciones"] label.btn.active {
-  background: #646c75;
+.btn-group[role="group"][aria-label="Constelaciones"] .btn-check:checked + label.btn,
+.btn-group[role="group"][aria-label="Constelaciones"] label.btn.active {
+  background: #6c757d;
   color: #fff;
-  border-color: #646c75;
-  font-weight: 700;
-  z-index: 1;
+  border-color: #6c757d;
 }
 
-/* Separador visual igual a Bootstrap tab */
-.btn-group[aria-label="Constelaciones"] label.btn:not(:last-child) {
-  border-right: none;
-}
-
-@media (max-width: 480px) {
-  .btn-group[aria-label="Constelaciones"] label.btn {
-    font-size: 0.75em;
-    max-width: 84px;
-    height: 1.7em;
-    padding: 0.12em 0.06em;
+/* Responsive: achica un poco en mobile */
+@media (max-width: 500px) {
+  .btn-group[role="group"][aria-label="Constelaciones"] label.btn {
+    min-width: 77px;
+    max-width: 98px;
+    font-size: 0.80em;
+    height: 2em;
+    line-height: 2em;
   }
 }
-
 /* ========== Feedback gráfico selección rectangular mapa ========== */
 .leaflet-interactive.selecting-rect {
   stroke-dasharray: 6 3;
