@@ -10,12 +10,16 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
   <link rel="stylesheet" href="style.css"/>
   <style>
-    .selecting-rect {
-      pointer-events: none;
-      border: 2px dashed #0d6efd;
-      background: rgba(13,110,253,.08);
-      position: absolute;
-      z-index: 5000;
+    .selecting-rect { pointer-events: none; border: 2px dashed #0d6efd; background: rgba(13,110,253,.08); position: absolute; z-index: 5000; }
+    .chart-container { min-height: 220px; padding: 12px 8px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(44,62,80,0.07); }
+    .chart-container canvas { max-width: 98%; max-height: 200px; margin: 0 auto; display: block; }
+    #informe-resumen { font-size: 0.97em; font-weight: 500; }
+    #imgMapaInforme { border: 1px solid #e5e7eb; border-radius: 8px; }
+    .modal-xl { min-width: 97vw; }
+    @media (max-width: 900px) {
+      .modal-xl { min-width: 100vw; }
+      .chart-container { min-height: 180px; padding: 7px 3px; }
+      #imgMapaInforme { max-width: 98vw; }
     }
   </style>
   <script type="importmap">
@@ -162,26 +166,26 @@
           </div>
           <div id="informe-resumen" class="small text-muted mb-3"></div>
           <div class="row g-4">
-            <div class="col-md-6">
-              <h6>Reentradas por tramo</h6>
-              <canvas id="chartPieTramos" height="170"></canvas>
+            <div class="col-md-6 chart-container">
+              <h6 class="mb-2">Reentradas por tramo</h6>
+              <canvas id="chartPieTramos" height="180"></canvas>
             </div>
-            <div class="col-md-6">
-              <h6>Distribución por clase</h6>
-              <canvas id="chartBarClases" height="170"></canvas>
+            <div class="col-md-6 chart-container">
+              <h6 class="mb-2">Distribución por clase</h6>
+              <canvas id="chartBarClases" height="180"></canvas>
             </div>
-            <div class="col-md-6">
-              <h6>Masa reingresada (kg) por tipo de debris</h6>
-              <canvas id="chartBarTipoMasa" height="170"></canvas>
+            <div class="col-md-6 chart-container">
+              <h6 class="mb-2">Masa reingresada (kg) por tipo de debris</h6>
+              <canvas id="chartBarTipoMasa" height="180"></canvas>
             </div>
-            <div class="col-md-6">
-              <h6>Tiempo en órbita</h6>
-              <canvas id="chartPieTiempo" height="170"></canvas>
+            <div class="col-md-6 chart-container">
+              <h6 class="mb-2">Tiempo en órbita</h6>
+              <canvas id="chartPieTiempo" height="180"></canvas>
             </div>
-            <div class="col-12">
-              <h6>Mapa (registros filtrados)</h6>
+            <div class="col-12 chart-container">
+              <h6 class="mb-2">Mapa (registros filtrados)</h6>
               <canvas id="canvasMapaInforme" width="650" height="320" class="d-none"></canvas>
-              <img id="imgMapaInforme" style="max-width:650px; width:100%; border:1px solid #e5e7eb; border-radius:8px;" class="d-none" alt="Mapa con filtros"/>
+              <img id="imgMapaInforme" style="max-width:650px; width:100%; height:auto;" class="d-none" alt="Mapa con filtros"/>
             </div>
           </div>
         </div>
