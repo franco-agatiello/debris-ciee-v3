@@ -450,13 +450,16 @@ function abrirInforme() {
   Object.values(charts).forEach(c=>{ if(c) c.destroy(); });
   charts = {};
   document.getElementById('informe-resumen').innerText = "";
-  document.getElementById('imgMapaInforme').classList.add('d-none');
-  document.getElementById('imgMapaInforme').src = "";
-  const canvasMapa = document.getElementById('canvasMapaInforme');
-  if (canvasMapa) {
-    canvasMapa.width = 650; canvasMapa.height = 320;
-    const ctx = canvasMapa.getContext('2d');
-    ctx.clearRect(0,0,canvasMapa.width,canvasMapa.height);
+  // Ocultamos mapas anteriores si quedaban
+  const canvasMapaPuntos = document.getElementById('canvasMapaPuntos');
+  const canvasMapaCalor = document.getElementById('canvasMapaCalor');
+  if (canvasMapaPuntos) {
+    const ctx = canvasMapaPuntos.getContext('2d');
+    ctx.clearRect(0,0,canvasMapaPuntos.width,canvasMapaPuntos.height);
+  }
+  if (canvasMapaCalor) {
+    const ctx = canvasMapaCalor.getContext('2d');
+    ctx.clearRect(0,0,canvasMapaCalor.width,canvasMapaCalor.height);
   }
 
   setTimeout(() => {
@@ -567,31 +570,10 @@ function abrirInforme() {
       }
     });
 
-    // --- Mapa filtrado en el informe: genera imagen ---
-    if (canvasMapa) {
-      const ctx = canvasMapa.getContext('2d');
-      ctx.clearRect(0,0,canvasMapa.width,canvasMapa.height);
-      ctx.fillStyle = "#eef";
-      ctx.fillRect(0,0,canvasMapa.width,canvasMapa.height);
-      // Dibuja puntos
-      filtrados.forEach(d => {
-        const lat = getLat(d), lon = getLon(d);
-        if (lat === null || lon === null) return;
-        const x = (lon+180)/360*canvasMapa.width;
-        const y = canvasMapa.height-(lat+90)/180*canvasMapa.height;
-        ctx.beginPath();
-        ctx.arc(x, y, 3, 0, 2*Math.PI, false);
-        ctx.fillStyle = "#3f51b5";
-        ctx.fill();
-      });
-      // Mostrar imagen
-      const img = document.getElementById('imgMapaInforme');
-      img.src = canvasMapa.toDataURL("image/png");
-      img.classList.remove('d-none');
-      img.style.width = "100%";
-      img.style.maxWidth = "650px";
-      img.style.height = "auto";
-    }
+    // --- Mapas filtrados en el informe ---
+    drawMapaPuntos(filtrados, 'canvasMapaPuntos');
+    drawMapaCalor(filtrados, 'canvasMapaCalor');
+
     document.getElementById('informe-loading').style.display = "none";
   }, 600);
 }
@@ -601,8 +583,11 @@ document.getElementById('informeModal').addEventListener('hidden.bs.modal', () =
   Object.values(charts).forEach(c=>{ if(c) c.destroy(); });
   charts = {};
   document.getElementById('informe-resumen').innerText = "";
-  document.getElementById('imgMapaInforme').src = "";
-  document.getElementById('imgMapaInforme').classList.add('d-none');
+  // Limpia los mapas canvas
+  ['canvasMapaPuntos','canvasMapaCalor'].forEach(cid=>{
+    const c=document.getElementById(cid);
+    if(c) c.getContext('2d').clearRect(0,0,c.width,c.height);
+  });
 });
 
 // --- Exportar PDF ---
@@ -626,12 +611,174 @@ function exportInformePDF() {
   addChart('chartBarTipoMasa', 390);
   addChart('chartPieTiempo', 540);
 
-  // Mapa
-  const imgMapa = document.getElementById('imgMapaInforme');
-  if (imgMapa && imgMapa.src) {
+  // Mapas
+  const canvasPuntos = document.getElementById('canvasMapaPuntos');
+  if (canvasPuntos) {
+    const imgData = canvasPuntos.toDataURL("image/png");
     doc.addPage();
-    doc.text("Mapa de reentradas filtradas", 30, 40);
-    doc.addImage(imgMapa.src, "PNG", 40, 60, 600, 320);
+    doc.text("Mapa de puntos (por año de caída)", 30, 40);
+    doc.addImage(imgData, "PNG", 40, 60, 600, 320);
+  }
+  const canvasCalor = document.getElementById('canvasMapaCalor');
+  if (canvasCalor) {
+    const imgData = canvasCalor.toDataURL("image/png");
+    doc.addPage();
+    doc.text("Mapa de calor (densidad de caídas)", 30, 40);
+    doc.addImage(imgData, "PNG", 40, 60, 600, 320);
   }
   doc.save("informe-debris.pdf");
+}
+
+// ==================== MAPAS CANVAS PARA INFORME ====================
+
+// --- Cargar earthmap1k solo una vez ---
+let earthmapImg = null;
+function cargarEarthmap(callback) {
+  if (earthmapImg && earthmapImg.complete) {
+    callback(earthmapImg);
+    return;
+  }
+  earthmapImg = new window.Image();
+  earthmapImg.src = "img/earthmap1k.jpg";
+  earthmapImg.onload = () => callback(earthmapImg);
+}
+
+// --- Mapa de puntos (scatter, por año de caída) ---
+function drawMapaPuntos(filtrados, canvasId) {
+  cargarEarthmap((img) => {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Fondo tierra con opacidad
+    ctx.globalAlpha = 0.5;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = 1.0;
+
+    // Dibuja puntos coloreados por año
+    filtrados.forEach(d => {
+      const lat = getLat(d), lon = getLon(d);
+      if (lat === null || lon === null) return;
+      const x = (lon + 180) / 360 * canvas.width;
+      const y = canvas.height - (lat + 90) / 180 * canvas.height;
+      const year = anio(d.fecha);
+      let color = "#ffc107"; // Amarillo default
+      if (year >= 2004 && year <= 2010) color = "#3f51b5";
+      else if (year >= 2011 && year <= 2017) color = "#43a047";
+      else if (year >= 2018 && year <= 2025) color = "#e53935";
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, 2 * Math.PI, false);
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.85;
+      ctx.fill();
+      ctx.globalAlpha = 1.0;
+    });
+
+    // Leyenda
+    drawLeyendaAnios(canvas, ctx);
+  });
+}
+
+// --- Mapa de calor (heatmap amarillo->rojo) ---
+function drawMapaCalor(filtrados, canvasId) {
+  cargarEarthmap((img) => {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Fondo tierra con opacidad
+    ctx.globalAlpha = 0.5;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = 1.0;
+
+    // Heatmap manual (sin librería)
+    const heatmap = ctx.createImageData(canvas.width, canvas.height);
+    const intensity = new Float32Array(canvas.width * canvas.height);
+
+    filtrados.forEach(d => {
+      const lat = getLat(d), lon = getLon(d);
+      if (lat === null || lon === null) return;
+      const x0 = Math.floor((lon + 180) / 360 * canvas.width);
+      const y0 = Math.floor(canvas.height - (lat + 90) / 180 * canvas.height);
+      for (let dy = -12; dy <= 12; dy++) {
+        for (let dx = -12; dx <= 12; dx++) {
+          const x = x0 + dx, y = y0 + dy;
+          if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) continue;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist > 12) continue;
+          const idx = y * canvas.width + x;
+          intensity[idx] += 1.2 * Math.exp(-dist * dist / 36);
+        }
+      }
+    });
+
+    const max = Math.max(...intensity);
+    for (let i = 0; i < intensity.length; i++) {
+      const val = intensity[i] / (max || 1);
+      const idx4 = i * 4;
+      // Gradiente amarillo->rojo: #ffff00 -> #e53935
+      const r = Math.round(255 * (1 - val) + 229 * val);
+      const g = Math.round(255 * (1 - val) + 57 * val);
+      const b = Math.round(0 * (1 - val) + 53 * val);
+      heatmap.data[idx4] = r;
+      heatmap.data[idx4 + 1] = g;
+      heatmap.data[idx4 + 2] = b;
+      heatmap.data[idx4 + 3] = Math.round(160 * val);
+    }
+    ctx.putImageData(heatmap, 0, 0);
+
+    // Leyenda
+    drawLeyendaHeatmap(canvas, ctx);
+  });
+}
+
+// --- Leyenda para mapa de puntos ---
+function drawLeyendaAnios(canvas, ctx) {
+  const leyenda = [
+    { color: "#3f51b5", label: "2004-2010" },
+    { color: "#43a047", label: "2011-2017" },
+    { color: "#e53935", label: "2018-2025" },
+    { color: "#ffc107", label: "Antes de 2004" }
+  ];
+  const x0 = canvas.width - 150, y0 = canvas.height - 75;
+  ctx.save();
+  ctx.globalAlpha = 0.93;
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(x0 - 8, y0 - 8, 138, 56);
+  ctx.globalAlpha = 1.0;
+  ctx.font = "13px Inter, Arial";
+  ctx.fillStyle = "#23272f";
+  ctx.fillText("Color por año de caída", x0, y0 + 8);
+  leyenda.forEach((item, i) => {
+    ctx.beginPath();
+    ctx.arc(x0 + 12, y0 + 24 + i * 13, 6, 0, 2 * Math.PI);
+    ctx.fillStyle = item.color;
+    ctx.fill();
+    ctx.fillStyle = "#23272f";
+    ctx.fillText(item.label, x0 + 25, y0 + 28 + i * 13);
+  });
+  ctx.restore();
+}
+
+// --- Leyenda para heatmap amarillo->rojo ---
+function drawLeyendaHeatmap(canvas, ctx) {
+  const x0 = canvas.width - 170, y0 = canvas.height - 50, w = 110, h = 12;
+  ctx.save();
+  ctx.globalAlpha = 0.93;
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(x0 - 8, y0 - 15, w + 30, h + 28);
+  ctx.globalAlpha = 1.0;
+  const grad = ctx.createLinearGradient(x0, y0, x0 + w, y0);
+  grad.addColorStop(0, "#ffff00");
+  grad.addColorStop(1, "#e53935");
+  ctx.fillStyle = grad;
+  ctx.fillRect(x0, y0, w, h);
+  ctx.font = "13px Inter, Arial";
+  ctx.fillStyle = "#23272f";
+  ctx.fillText("Bajo", x0, y0 + h + 15);
+  ctx.fillText("Alto", x0 + w - 32, y0 + h + 15);
+  ctx.fillText("Densidad", x0 + 35, y0 - 5);
+  ctx.restore();
 }
