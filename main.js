@@ -716,7 +716,13 @@ function drawLeyendaAnios(canvas, ctx) {
 let expandedChartInstance = null;
 window.expandChart = function(chartId, chartTitle) {
   const modalCanvas = document.getElementById('expandChartCanvas');
-  // Limpia cualquier gráfico previo
+  const modal = new bootstrap.Modal(document.getElementById('chartExpandModal'));
+
+  // Ajusta el tamaño del canvas al modal
+  modalCanvas.width = Math.min(window.innerWidth * 0.9, 900);
+  modalCanvas.height = Math.min(window.innerHeight * 0.7, 600);
+
+  // Limpia el chart previo
   if (Chart.getChart(modalCanvas)) Chart.getChart(modalCanvas).destroy();
   if (expandedChartInstance) {
     expandedChartInstance.destroy();
@@ -730,16 +736,29 @@ window.expandChart = function(chartId, chartTitle) {
   modalCanvas.getContext("2d").clearRect(0, 0, modalCanvas.width, modalCanvas.height);
 
   // COPIA SEGURA de datos y opciones
-  // Solo copia data y options, nunca referencias ni funciones
   const safeData = JSON.parse(JSON.stringify(originalChart.data));
-  // Opciones: copia profunda, sanitiza y elimina callbacks/scriptable
   const rawOptions = JSON.parse(JSON.stringify(originalChart.options));
   const sanitizedOptions = fixChartOptions({
     ...rawOptions,
-    responsive: false,
+    responsive: true,
     maintainAspectRatio: false,
-    width: modalCanvas.width,
-    height: modalCanvas.height
+    plugins: {
+      ...rawOptions.plugins,
+      legend: {
+        ...rawOptions.plugins?.legend,
+        position: 'top', // Mejor posición al expandir
+        labels: {
+          ...rawOptions.plugins?.legend?.labels,
+          font: { size: 18 } // Aumenta font al expandir
+        },
+        padding: 32 // Espacio extra arriba
+      }
+    },
+    layout: {
+      padding: {
+        top: 30, bottom: 20, left: 20, right: 20
+      }
+    }
   });
 
   expandedChartInstance = new Chart(modalCanvas, {
@@ -748,6 +767,11 @@ window.expandChart = function(chartId, chartTitle) {
     options: sanitizedOptions
   });
 
-  const modal = new bootstrap.Modal(document.getElementById('chartExpandModal'));
   modal.show();
+
+  // Forzar resize/redraw al mostrar
+  setTimeout(() => {
+    expandedChartInstance.resize();
+    expandedChartInstance.update();
+  }, 350);
 };
