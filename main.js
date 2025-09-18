@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 // ================== Config ==================
 const LOGO_SRC = "img/Captura de pantalla 2025-06-06 211123.png";
@@ -432,12 +434,33 @@ function limpiarSeleccionRect(){
 let charts = {}; // Para limpiar instancias previas
 
 function fixChartOptions(options) {
+  // Asegura que los nombres de escala sean string
   if (options && options.scales) {
     const fixedScales = {};
-    Object.keys(options.scales).forEach(key => {
-      fixedScales[String(key)] = options.scales[key];
+    Object.entries(options.scales).forEach(([key, val]) => {
+      fixedScales[String(key)] = val;
     });
     options.scales = fixedScales;
+  }
+  // Elimina funciones o referencias scriptable que puedan causar recursión
+  if (options && options.plugins) {
+    // Elimina callbacks de tooltip si existen
+    if (options.plugins.tooltip && options.plugins.tooltip.callbacks) {
+      options.plugins.tooltip = {
+        ...options.plugins.tooltip,
+        callbacks: undefined
+      };
+    }
+    // Elimina scriptableOptions si existen
+    Object.keys(options.plugins).forEach(pk => {
+      if (options.plugins[pk] && typeof options.plugins[pk]._scriptable !== 'undefined') {
+        delete options.plugins[pk]._scriptable;
+      }
+    });
+  }
+  // Elimina options._scriptable si existe
+  if (options && typeof options._scriptable !== 'undefined') {
+    delete options._scriptable;
   }
   return options;
 }
@@ -695,6 +718,7 @@ function drawLeyendaAnios(canvas, ctx) {
 let expandedChartInstance = null;
 window.expandChart = function(chartId, chartTitle) {
   const modalCanvas = document.getElementById('expandChartCanvas');
+  // Limpia cualquier gráfico previo
   if (Chart.getChart(modalCanvas)) Chart.getChart(modalCanvas).destroy();
   if (expandedChartInstance) {
     expandedChartInstance.destroy();
@@ -707,18 +731,22 @@ window.expandChart = function(chartId, chartTitle) {
   document.getElementById('expandChartLabel').textContent = chartTitle;
   modalCanvas.getContext("2d").clearRect(0, 0, modalCanvas.width, modalCanvas.height);
 
-  const sanitizedOptions = fixChartOptions(
-    Object.assign({}, originalChart.options, {
-      responsive: false,
-      maintainAspectRatio: false,
-      width: modalCanvas.width,
-      height: modalCanvas.height
-    })
-  );
+  // COPIA SEGURA de datos y opciones
+  // Solo copia data y options, nunca referencias ni funciones
+  const safeData = JSON.parse(JSON.stringify(originalChart.data));
+  // Opciones: copia profunda, sanitiza y elimina callbacks/scriptable
+  const rawOptions = JSON.parse(JSON.stringify(originalChart.options));
+  const sanitizedOptions = fixChartOptions({
+    ...rawOptions,
+    responsive: false,
+    maintainAspectRatio: false,
+    width: modalCanvas.width,
+    height: modalCanvas.height
+  });
 
   expandedChartInstance = new Chart(modalCanvas, {
     type: originalChart.config.type,
-    data: JSON.parse(JSON.stringify(originalChart.data)),
+    data: safeData,
     options: sanitizedOptions
   });
 
