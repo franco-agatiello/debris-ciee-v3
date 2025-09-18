@@ -441,8 +441,6 @@ function limpiarSeleccionRect(){
 // --- Informe y PDF con Chart.js estéticas y correcciones ---
 let charts = {}; // Para limpiar instancias previas
 
-// ... (todo tu código previo idéntico hasta abrirInforme)
-
 function abrirInforme() {
   const modal = new bootstrap.Modal(document.getElementById('informeModal'));
   modal.show();
@@ -716,3 +714,31 @@ function drawLeyendaAnios(canvas, ctx) {
   ctx.restore();
 }
 
+// --- Gráficas expandidas (fullscreen modal) ---
+let expandedChartInstance = null;
+window.expandChart = function(chartId, chartTitle) {
+  const originalCanvas = document.getElementById(chartId);
+  const originalChart = Chart.getChart(originalCanvas);
+  if (!originalChart) return;
+
+  if (expandedChartInstance) expandedChartInstance.destroy();
+
+  document.getElementById('expandChartLabel').textContent = chartTitle;
+
+  const modalCanvas = document.getElementById('expandChartCanvas');
+  modalCanvas.getContext("2d").clearRect(0, 0, modalCanvas.width, modalCanvas.height);
+
+  expandedChartInstance = new Chart(modalCanvas, {
+    type: originalChart.config.type,
+    data: JSON.parse(JSON.stringify(originalChart.data)),
+    options: Object.assign({}, originalChart.options, {
+      responsive: false,
+      maintainAspectRatio: false,
+      width: modalCanvas.width,
+      height: modalCanvas.height
+    })
+  });
+
+  const modal = new bootstrap.Modal(document.getElementById('chartExpandModal'));
+  modal.show();
+};
