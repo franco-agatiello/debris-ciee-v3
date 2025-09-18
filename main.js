@@ -531,8 +531,7 @@ function abrirInforme() {
         scales: {
           x: {
             title: { display: true, text: 'Masa total reingresada (kg)' },
-            beginAtZero: true,
-            // ticks: { stepSize: 1 }   <-- QUITADO para evitar error de Chart.js con muchos ticks
+            beginAtZero: true
           }
         }
       }
@@ -568,7 +567,6 @@ function abrirInforme() {
 
     // --- Mapa filtrado en el informe ---
     drawMapaPuntos(filtrados, 'canvasMapaPuntos');
-    // drawMapaCalor ELIMINADO
 
     document.getElementById('informe-loading').style.display = "none";
   }, 600);
@@ -582,7 +580,6 @@ document.getElementById('informeModal').addEventListener('hidden.bs.modal', () =
   // Limpia el mapa canvas
   const c=document.getElementById('canvasMapaPuntos');
   if(c) c.getContext('2d').clearRect(0,0,c.width,c.height);
-  // El canvasMapaCalor ya no existe
 });
 
 // --- Exportar PDF ---
@@ -614,8 +611,6 @@ function exportInformePDF() {
     doc.text("Mapa de puntos (por año de caída)", 30, 40);
     doc.addImage(imgData, "PNG", 40, 60, 600, 320);
   }
-  // No hay canvasMapaCalor
-
   doc.save("informe-debris.pdf");
 }
 
@@ -717,15 +712,20 @@ function drawLeyendaAnios(canvas, ctx) {
 // --- Gráficas expandidas (fullscreen modal) ---
 let expandedChartInstance = null;
 window.expandChart = function(chartId, chartTitle) {
+  const modalCanvas = document.getElementById('expandChartCanvas');
+  // Destruye SIEMPRE el gráfico previo antes de crear uno nuevo
+  if (Chart.getChart(modalCanvas)) {
+    Chart.getChart(modalCanvas).destroy();
+  }
+  if (expandedChartInstance) {
+    expandedChartInstance.destroy();
+    expandedChartInstance = null;
+  }
   const originalCanvas = document.getElementById(chartId);
   const originalChart = Chart.getChart(originalCanvas);
   if (!originalChart) return;
 
-  if (expandedChartInstance) expandedChartInstance.destroy();
-
   document.getElementById('expandChartLabel').textContent = chartTitle;
-
-  const modalCanvas = document.getElementById('expandChartCanvas');
   modalCanvas.getContext("2d").clearRect(0, 0, modalCanvas.width, modalCanvas.height);
 
   expandedChartInstance = new Chart(modalCanvas, {
