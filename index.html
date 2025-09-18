@@ -226,6 +226,7 @@
     </div>
   </div>
   <!-- Modal Informe -->
+<!-- Modal de Informe con opción de expandir cada gráfica -->
 <div class="modal fade" id="informeModal" tabindex="-1" aria-labelledby="informeLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
@@ -241,32 +242,83 @@
         <div id="informe-resumen" class="mb-3"></div>
         <div class="row mb-2">
           <div class="col-md-6 chart-container mb-3">
-            <h6 class="mb-2">Distribución por tramo (año de caída)</h6>
+            <h6 class="mb-2">
+              Distribución por tramo (año de caída)
+              <button class="btn btn-sm btn-outline-primary float-end"
+                      onclick="expandChart('chartPieTramos','Distribución por tramo (año de caída)')"
+                      title="Ver gráfico grande">
+                <i class="bi bi-arrows-fullscreen"></i>
+              </button>
+            </h6>
             <canvas id="chartPieTramos" width="350" height="170"></canvas>
           </div>
           <div class="col-md-6 chart-container mb-3">
-            <h6 class="mb-2">Distribución por clase de objeto</h6>
+            <h6 class="mb-2">
+              Distribución por clase de objeto
+              <button class="btn btn-sm btn-outline-primary float-end"
+                      onclick="expandChart('chartBarClases','Distribución por clase de objeto')"
+                      title="Ver gráfico grande">
+                <i class="bi bi-arrows-fullscreen"></i>
+              </button>
+            </h6>
             <canvas id="chartBarClases" width="350" height="170"></canvas>
           </div>
         </div>
         <div class="row mb-2">
           <div class="col-md-6 chart-container mb-3">
-            <h6 class="mb-2">Masa reingresada (kg) por tipo de debris</h6>
+            <h6 class="mb-2">
+              Masa reingresada (kg) por tipo de debris
+              <button class="btn btn-sm btn-outline-primary float-end"
+                      onclick="expandChart('chartBarTipoMasa','Masa reingresada (kg) por tipo de debris')"
+                      title="Ver gráfico grande">
+                <i class="bi bi-arrows-fullscreen"></i>
+              </button>
+            </h6>
             <canvas id="chartBarTipoMasa" width="350" height="170"></canvas>
           </div>
           <div class="col-md-6 chart-container mb-3">
-            <h6 class="mb-2">Tiempo en órbita</h6>
+            <h6 class="mb-2">
+              Tiempo en órbita
+              <button class="btn btn-sm btn-outline-primary float-end"
+                      onclick="expandChart('chartPieTiempo','Tiempo en órbita')"
+                      title="Ver gráfico grande">
+                <i class="bi bi-arrows-fullscreen"></i>
+              </button>
+            </h6>
             <canvas id="chartPieTiempo" width="350" height="170"></canvas>
           </div>
         </div>
         <div class="col-12 chart-container">
-          <h6 class="mb-2">Mapa de puntos (por año de caída)</h6>
+          <h6 class="mb-2">
+            Mapa de puntos (por año de caída)
+            <!-- Este podría no necesitar expandir, pero si quieres, agrégalo igual -->
+            <button class="btn btn-sm btn-outline-primary float-end"
+                    onclick="expandChart('canvasMapaPuntos','Mapa de puntos (por año de caída)')"
+                    title="Ver gráfico grande">
+              <i class="bi bi-arrows-fullscreen"></i>
+            </button>
+          </h6>
           <canvas id="canvasMapaPuntos" width="650" height="320"></canvas>
         </div>
       </div>
       <div class="modal-footer">
         <button id="dlPDF" class="btn btn-success">Exportar PDF</button>
         <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para gráfica expandida -->
+<div class="modal fade" id="chartExpandModal" tabindex="-1" aria-labelledby="expandChartLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="expandChartLabel"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body text-center">
+        <canvas id="expandChartCanvas" width="900" height="480"></canvas>
       </div>
     </div>
   </div>
