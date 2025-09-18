@@ -714,14 +714,9 @@ function drawLeyendaAnios(canvas, ctx) {
 
 // --- Gráficas expandidas (fullscreen modal) ---
 let expandedChartInstance = null;
+// --- Bloque JS para expandChart con tamaño correcto y formato robusto ---
 window.expandChart = function(chartId, chartTitle) {
   const modalCanvas = document.getElementById('expandChartCanvas');
-  const modal = new bootstrap.Modal(document.getElementById('chartExpandModal'));
-
-  // Ajusta el tamaño del canvas al modal
-  modalCanvas.width = Math.min(window.innerWidth * 0.9, 900);
-  modalCanvas.height = Math.min(window.innerHeight * 0.7, 600);
-
   // Limpia cualquier gráfico previo
   if (Chart.getChart(modalCanvas)) Chart.getChart(modalCanvas).destroy();
   if (expandedChartInstance) {
@@ -733,6 +728,14 @@ window.expandChart = function(chartId, chartTitle) {
   if (!originalChart) return;
 
   document.getElementById('expandChartLabel').textContent = chartTitle;
+
+  // Ajusta tamaño del canvas al contenedor modal
+  modalCanvas.style.width = "100%";
+  modalCanvas.style.height = "60vh";
+  // Opcional: Si quieres forzar el tamaño físico del canvas para Chart.js
+  modalCanvas.width = modalCanvas.offsetWidth;
+  modalCanvas.height = modalCanvas.offsetHeight;
+
   modalCanvas.getContext("2d").clearRect(0, 0, modalCanvas.width, modalCanvas.height);
 
   // COPIA SEGURA de datos y opciones
@@ -741,24 +744,7 @@ window.expandChart = function(chartId, chartTitle) {
   const sanitizedOptions = fixChartOptions({
     ...rawOptions,
     responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      ...rawOptions.plugins,
-      legend: {
-        ...rawOptions.plugins?.legend,
-        position: 'top',
-        labels: {
-          ...rawOptions.plugins?.legend?.labels,
-          font: { size: 18 }
-        },
-        padding: 32
-      }
-    },
-    layout: {
-      padding: {
-        top: 30, bottom: 20, left: 20, right: 20
-      }
-    }
+    maintainAspectRatio: true // Cambia a false si quieres que llene todo el modal
   });
 
   expandedChartInstance = new Chart(modalCanvas, {
@@ -767,9 +753,9 @@ window.expandChart = function(chartId, chartTitle) {
     options: sanitizedOptions
   });
 
+  const modal = new bootstrap.Modal(document.getElementById('chartExpandModal'));
   modal.show();
-
-  setTimeout(() => {
+};
     expandedChartInstance.resize();
     expandedChartInstance.update();
   }, 350);
