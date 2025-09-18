@@ -536,7 +536,7 @@ function abrirInforme() {
           x: {
             title: { display: true, text: 'Masa total reingresada (kg)' },
             beginAtZero: true,
-            ticks: { stepSize: 1 }
+            // ticks: { stepSize: 1 }   <-- QUITADO para evitar error de Chart.js con muchos ticks
           }
         }
       }
@@ -633,14 +633,30 @@ function exportInformePDF() {
 
 // --- Cargar earthmap1k solo una vez ---
 let earthmapImg = null;
+let earthmapLoading = false;
+let earthmapCallbacks = [];
+
 function cargarEarthmap(callback) {
   if (earthmapImg && earthmapImg.complete) {
     callback(earthmapImg);
     return;
   }
-  earthmapImg = new window.Image();
-  earthmapImg.src = "img/earthmap1k.jpg";
-  earthmapImg.onload = () => callback(earthmapImg);
+  earthmapCallbacks.push(callback);
+  if (!earthmapLoading) {
+    earthmapLoading = true;
+    earthmapImg = new window.Image();
+    earthmapImg.src = "img/earthmap1k.jpg";
+    earthmapImg.onload = () => {
+      earthmapLoading = false;
+      earthmapCallbacks.forEach(cb => cb(earthmapImg));
+      earthmapCallbacks = [];
+    };
+    earthmapImg.onerror = () => {
+      earthmapLoading = false;
+      earthmapCallbacks.forEach(cb => cb(null));
+      earthmapCallbacks = [];
+    };
+  }
 }
 
 // --- Mapa de puntos (scatter, por año de caída) ---
