@@ -42,24 +42,16 @@ function anio(str){ if(!str) return null; const y = parseInt(String(str).slice(0
 function numOrNull(v){ if(v===""||v==null) return null; const n=Number(v); return Number.isFinite(n)?n:null; }
 function getLat(d){ return numOrNull(d?.lugar_caida?.lat ?? d?.lat ?? d?.latitude ?? d?.latitud ?? d?.Lat); }
 function getLon(d){ return numOrNull(d?.lugar_caida?.lon ?? d?.lon ?? d?.longitude ?? d?.longitud ?? d?.Lon); }
-
-// ----------- CLAVE: SOLO USAR masa_en_orbita PARA LA GRÁFICA DE MASA ----------
-function getMasaReingresadaKg(d) {
-  return Number(d.masa_en_orbita) || 0;
-}
-
-// ----------- CLAVE: SOLO USAR dias_en_orbita PARA LA GRÁFICA DE TIEMPO ----------
-function getDiasEnOrbita(d){
-  return Number(d.dias_en_orbita) || 0;
-}
+function getMasaReingresadaKg(d) { return Number(d.masa_en_orbita) || 0; }
+function getDiasEnOrbita(d){ return Number(d.dias_en_orbita) || 0; }
 
 function poblarDropdown(menuId, btnId, items, etiquetaTodos="Todos"){
   const menu = document.getElementById(menuId);
   const btn  = document.getElementById(btnId);
   menu.innerHTML = `<li><a class="dropdown-item" href="#" data-value="">${etiquetaTodos}</a></li>` +
     items.map(v=>`<li><a class="dropdown-item" href="#" data-value="${v}">${v}</a></li>`).join("");
-  btn.textContent = etiquetaTodos; // Default selected text
-  btn.dataset.value = ""; // Default selected value
+  btn.textContent = etiquetaTodos;
+  btn.dataset.value = "";
   menu.querySelectorAll(".dropdown-item").forEach(a=>{
     a.addEventListener("click",(e)=>{
       e.preventDefault();
@@ -228,7 +220,6 @@ window.mostrarTrayectoria = function(index) {
   const d = filtrarDatos()[index];
   if (!d.tle1 || !d.tle2) return alert("No hay TLE para este debris.");
 
-  // --- ADVERTENCIA DE DIFERENCIA DE TIEMPO ---
   let mensajeDiferencia = '';
   if (d.dias_diferencia !== undefined && d.dias_diferencia !== null) {
     const horas = (d.dias_diferencia * 24).toFixed(2);
@@ -301,7 +292,6 @@ window.mostrarOrbita3D = function(index) {
     return alert("No hay TLE para este debris.");
   }
 
-  // --- ADVERTENCIA DE DIFERENCIA DE TIEMPO ---
   let mensajeDiferencia = '';
   if (d.dias_diferencia !== undefined && d.dias_diferencia !== null) {
     const horas = (d.dias_diferencia * 24).toFixed(2);
@@ -457,11 +447,9 @@ function abrirInforme() {
   modal.show();
   document.getElementById('informe-loading').style.display = "flex";
 
-  // Limpieza previa
   Object.values(charts).forEach(c=>{ if(c) c.destroy(); });
   charts = {};
   document.getElementById('informe-resumen').innerText = "";
-  // Ocultamos mapas anteriores si quedaban
   const canvasMapaPuntos = document.getElementById('canvasMapaPuntos');
   if (canvasMapaPuntos) {
     const ctx = canvasMapaPuntos.getContext('2d');
@@ -473,7 +461,6 @@ function abrirInforme() {
     document.getElementById('informe-resumen').innerText =
       `Cantidad de registros visibles: ${filtrados.length}`;
 
-    // --- Gráfica: Reentradas por tramo (Pie) ---
     const tramos = { "2004-2010": 0, "2011-2017": 0, "2018-2025": 0, "Antes de 2004": 0 };
     filtrados.forEach(d => {
       const y = anio(d.fecha);
@@ -500,7 +487,6 @@ function abrirInforme() {
       }
     });
 
-    // --- Gráfica: Distribución por clase (Bar) ---
     const clases = {};
     filtrados.forEach(d => {
       const clase = d.clase_objeto || "Desconocido";
@@ -519,7 +505,6 @@ function abrirInforme() {
       options: { indexAxis: 'y', plugins: { legend: { display: false } } }
     });
 
-    // --- Gráfica: Masa reingresada por tipo (Bar) ---
     const tiposMasa = {};
     filtrados.forEach(d => {
       const tipo = d.clase_objeto || "Desconocido";
@@ -547,7 +532,6 @@ function abrirInforme() {
       })
     });
 
-    // --- Gráfica: Tiempo en órbita (Pie) ---
     const tiempos = { "<1 año": 0, "1-5 años": 0, "5-10 años": 0, ">10 años": 0 };
     filtrados.forEach(d => {
       const dias = getDiasEnOrbita(d);
@@ -575,24 +559,20 @@ function abrirInforme() {
       }
     });
 
-    // --- Mapa filtrado en el informe ---
     drawMapaPuntos(filtrados, 'canvasMapaPuntos');
 
     document.getElementById('informe-loading').style.display = "none";
   }, 600);
 }
 
-// --- Al cerrar modal, limpiar informe para el próximo ---
 document.getElementById('informeModal').addEventListener('hidden.bs.modal', () => {
   Object.values(charts).forEach(c=>{ if(c) c.destroy(); });
   charts = {};
   document.getElementById('informe-resumen').innerText = "";
-  // Limpia el mapa canvas
   const c=document.getElementById('canvasMapaPuntos');
   if(c) c.getContext('2d').clearRect(0,0,c.width,c.height);
 });
 
-// --- Exportar PDF ---
 function exportInformePDF() {
   const doc = new window.jspdf.jsPDF("l", "pt", "a4");
   doc.setFontSize(20);
@@ -600,7 +580,6 @@ function exportInformePDF() {
   doc.setFontSize(12);
   doc.text(document.getElementById('informe-resumen').innerText, 30, 70);
 
-  // Gráficos
   const addChart = (canvasId, y) => {
     const chartCanvas = document.getElementById(canvasId);
     if (chartCanvas) {
@@ -613,7 +592,6 @@ function exportInformePDF() {
   addChart('chartBarTipoMasa', 390);
   addChart('chartPieTiempo', 540);
 
-  // Mapa
   const canvasPuntos = document.getElementById('canvasMapaPuntos');
   if (canvasPuntos) {
     const imgData = canvasPuntos.toDataURL("image/png");
@@ -626,7 +604,6 @@ function exportInformePDF() {
 
 // ==================== MAPAS CANVAS PARA INFORME ====================
 
-// --- Cargar earthmap1k solo una vez ---
 let earthmapImg = null;
 let earthmapLoading = false;
 let earthmapCallbacks = [];
@@ -654,7 +631,6 @@ function cargarEarthmap(callback) {
   }
 }
 
-// --- Mapa de puntos (scatter, por año de caída) ---
 function drawMapaPuntos(filtrados, canvasId) {
   cargarEarthmap((img) => {
     const canvas = document.getElementById(canvasId);
@@ -662,19 +638,17 @@ function drawMapaPuntos(filtrados, canvasId) {
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Fondo tierra con opacidad
     ctx.globalAlpha = 0.5;
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     ctx.globalAlpha = 1.0;
 
-    // Dibuja puntos coloreados por año
     filtrados.forEach(d => {
       const lat = getLat(d), lon = getLon(d);
       if (lat === null || lon === null) return;
       const x = (lon + 180) / 360 * canvas.width;
       const y = canvas.height - (lat + 90) / 180 * canvas.height;
       const year = anio(d.fecha);
-      let color = "#ffc107"; // Amarillo default
+      let color = "#ffc107";
       if (year >= 2004 && year <= 2010) color = "#3f51b5";
       else if (year >= 2011 && year <= 2017) color = "#43a047";
       else if (year >= 2018 && year <= 2025) color = "#e53935";
@@ -686,12 +660,10 @@ function drawMapaPuntos(filtrados, canvasId) {
       ctx.globalAlpha = 1.0;
     });
 
-    // Leyenda
     drawLeyendaAnios(canvas, ctx);
   });
 }
 
-// --- Leyenda para mapa de puntos ---
 function drawLeyendaAnios(canvas, ctx) {
   const leyenda = [
     { color: "#3f51b5", label: "2004-2010" },
@@ -723,10 +695,7 @@ function drawLeyendaAnios(canvas, ctx) {
 let expandedChartInstance = null;
 window.expandChart = function(chartId, chartTitle) {
   const modalCanvas = document.getElementById('expandChartCanvas');
-  // Destruye SIEMPRE el gráfico previo antes de crear uno nuevo
-  if (Chart.getChart(modalCanvas)) {
-    Chart.getChart(modalCanvas).destroy();
-  }
+  if (Chart.getChart(modalCanvas)) Chart.getChart(modalCanvas).destroy();
   if (expandedChartInstance) {
     expandedChartInstance.destroy();
     expandedChartInstance = null;
@@ -738,17 +707,19 @@ window.expandChart = function(chartId, chartTitle) {
   document.getElementById('expandChartLabel').textContent = chartTitle;
   modalCanvas.getContext("2d").clearRect(0, 0, modalCanvas.width, modalCanvas.height);
 
+  const sanitizedOptions = fixChartOptions(
+    Object.assign({}, originalChart.options, {
+      responsive: false,
+      maintainAspectRatio: false,
+      width: modalCanvas.width,
+      height: modalCanvas.height
+    })
+  );
+
   expandedChartInstance = new Chart(modalCanvas, {
     type: originalChart.config.type,
     data: JSON.parse(JSON.stringify(originalChart.data)),
-    options: fixChartOptions(
-      Object.assign({}, originalChart.options, {
-        responsive: false,
-        maintainAspectRatio: false,
-        width: modalCanvas.width,
-        height: modalCanvas.height
-      })
-    )
+    options: sanitizedOptions
   });
 
   const modal = new bootstrap.Modal(document.getElementById('chartExpandModal'));
