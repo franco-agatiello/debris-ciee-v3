@@ -1,7 +1,5 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 // ================== Config ==================
 const LOGO_SRC = "img/Captura de pantalla 2025-06-06 211123.png";
