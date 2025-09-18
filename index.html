@@ -226,50 +226,51 @@
     </div>
   </div>
   <!-- Modal Informe -->
-  <div class="modal fade" id="informeModal" tabindex="-1" aria-labelledby="informeLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 id="informeLabel" class="modal-title">Informe de reentradas (según filtros activos)</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+<div class="modal fade" id="informeModal" tabindex="-1" aria-labelledby="informeLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="informeLabel">Informe de reentradas (según filtros activos)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div id="informe-loading" style="display:none;align-items:center;justify-content:center;min-height:220px;">
+          <div class="spinner-border text-primary" role="status"></div>
+          <span class="ms-3">Generando informe...</span>
         </div>
-        <div class="modal-body">
-          <div id="informe-loading" class="d-flex align-items-center gap-2 mb-3">
-            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-            <span class="text-muted small">Generando informe…</span>
+        <div id="informe-resumen" class="mb-3"></div>
+        <div class="row mb-2">
+          <div class="col-md-6 chart-container mb-3">
+            <h6 class="mb-2">Distribución por tramo (año de caída)</h6>
+            <canvas id="chartPieTramos" width="350" height="170"></canvas>
           </div>
-          <div id="informe-resumen" class="small text-muted mb-3"></div>
-          <div class="row g-4">
-            <div class="col-md-6 chart-container">
-              <h6 class="mb-2">Reentradas por tramo</h6>
-              <canvas id="chartPieTramos" height="180"></canvas>
-            </div>
-            <div class="col-md-6 chart-container">
-              <h6 class="mb-2">Distribución por clase</h6>
-              <canvas id="chartBarClases" height="180"></canvas>
-            </div>
-            <div class="col-md-6 chart-container">
-              <h6 class="mb-2">Masa reingresada (kg) por tipo de debris</h6>
-              <canvas id="chartBarTipoMasa" height="180"></canvas>
-            </div>
-            <div class="col-md-6 chart-container">
-              <h6 class="mb-2">Tiempo en órbita</h6>
-              <canvas id="chartPieTiempo" height="180"></canvas>
-            </div>
-           <div class="col-12 chart-container">
-              <h6 class="mb-2">Mapa de puntos (por año de caída)</h6>
-              <canvas id="canvasMapaPuntos" width="650" height="320"></canvas>
-          </div>
-            </div>
+          <div class="col-md-6 chart-container mb-3">
+            <h6 class="mb-2">Distribución por clase de objeto</h6>
+            <canvas id="chartBarClases" width="350" height="170"></canvas>
           </div>
         </div>
-        <div class="modal-footer">
-          <button id="dlPDF" class="btn btn-success">Exportar PDF</button>
-          <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <div class="row mb-2">
+          <div class="col-md-6 chart-container mb-3">
+            <h6 class="mb-2">Masa reingresada (kg) por tipo de debris</h6>
+            <canvas id="chartBarTipoMasa" width="350" height="170"></canvas>
+          </div>
+          <div class="col-md-6 chart-container mb-3">
+            <h6 class="mb-2">Tiempo en órbita</h6>
+            <canvas id="chartPieTiempo" width="350" height="170"></canvas>
+          </div>
         </div>
+        <div class="col-12 chart-container">
+          <h6 class="mb-2">Mapa de puntos (por año de caída)</h6>
+          <canvas id="canvasMapaPuntos" width="650" height="320"></canvas>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="dlPDF" class="btn btn-success">Exportar PDF</button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
+</div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
