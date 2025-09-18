@@ -441,6 +441,17 @@ function limpiarSeleccionRect(){
 // --- Informe y PDF con Chart.js estéticas y correcciones ---
 let charts = {}; // Para limpiar instancias previas
 
+function fixChartOptions(options) {
+  if (options && options.scales) {
+    const fixedScales = {};
+    Object.keys(options.scales).forEach(key => {
+      fixedScales[String(key)] = options.scales[key];
+    });
+    options.scales = fixedScales;
+  }
+  return options;
+}
+
 function abrirInforme() {
   const modal = new bootstrap.Modal(document.getElementById('informeModal'));
   modal.show();
@@ -456,7 +467,6 @@ function abrirInforme() {
     const ctx = canvasMapaPuntos.getContext('2d');
     ctx.clearRect(0,0,canvasMapaPuntos.width,canvasMapaPuntos.height);
   }
-  // Eliminado el canvasMapaCalor
 
   setTimeout(() => {
     const filtrados = filtrarDatos();
@@ -525,7 +535,7 @@ function abrirInforme() {
           backgroundColor: '#e53935'
         }]
       },
-      options: {
+      options: fixChartOptions({
         indexAxis: 'y',
         plugins: { legend: { display: false }, tooltip: { enabled: true } },
         scales: {
@@ -534,7 +544,7 @@ function abrirInforme() {
             beginAtZero: true
           }
         }
-      }
+      })
     });
 
     // --- Gráfica: Tiempo en órbita (Pie) ---
@@ -731,12 +741,14 @@ window.expandChart = function(chartId, chartTitle) {
   expandedChartInstance = new Chart(modalCanvas, {
     type: originalChart.config.type,
     data: JSON.parse(JSON.stringify(originalChart.data)),
-    options: Object.assign({}, originalChart.options, {
-      responsive: false,
-      maintainAspectRatio: false,
-      width: modalCanvas.width,
-      height: modalCanvas.height
-    })
+    options: fixChartOptions(
+      Object.assign({}, originalChart.options, {
+        responsive: false,
+        maintainAspectRatio: false,
+        width: modalCanvas.width,
+        height: modalCanvas.height
+      })
+    )
   });
 
   const modal = new bootstrap.Modal(document.getElementById('chartExpandModal'));
