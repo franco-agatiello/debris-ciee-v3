@@ -123,10 +123,11 @@ body > .container-fluid { width: 100vw !important; max-width: 100vw !important; 
   display: block;
 }
 
+/* --- CANVAS EXPANDIDO DE GRÁFICA EN MODAL --- */
 #expandChartCanvas {
-  width: 100% !important;
-  height: 60vh !important;
-  max-width: 100vw;
+  width: 80vw !important;
+  aspect-ratio: 1 / 1 !important; /* Mantiene el canvas cuadrado, ideal para pie charts */
+  max-width: 700px;
   max-height: 80vh;
   display: block;
   margin: auto;
@@ -137,6 +138,7 @@ body > .container-fluid { width: 100vw !important; max-width: 100vw !important; 
   user-select: none;
 }
 
+/* Etiqueta del gráfico expandido */
 #expandChartLabel {
   font-size: 1.2rem;
   font-weight: bold;
@@ -150,8 +152,10 @@ body > .container-fluid { width: 100vw !important; max-width: 100vw !important; 
 
 @media (max-width: 700px) {
   #expandChartCanvas {
-    height: 40vh !important;
-    max-height: 50vh;
+    width: 98vw !important;
+    aspect-ratio: 1 / 1 !important;
+    max-width: 98vw;
+    max-height: 60vh;
   }
   #chartExpandModal .modal-dialog {
     max-width: 98vw;
@@ -309,7 +313,9 @@ body > .container-fluid { width: 100vw !important; max-width: 100vw !important; 
   }
   #expandChartCanvas {
     width: 98vw !important;
-    height: 300px !important;
+    aspect-ratio: 1 / 1 !important;
+    max-width: 98vw;
+    max-height: 60vh;
   }
 }
 
