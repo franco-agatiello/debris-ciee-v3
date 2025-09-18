@@ -722,7 +722,7 @@ window.expandChart = function(chartId, chartTitle) {
   modalCanvas.width = Math.min(window.innerWidth * 0.9, 900);
   modalCanvas.height = Math.min(window.innerHeight * 0.7, 600);
 
-  // Limpia el chart previo
+  // Limpia cualquier gráfico previo
   if (Chart.getChart(modalCanvas)) Chart.getChart(modalCanvas).destroy();
   if (expandedChartInstance) {
     expandedChartInstance.destroy();
@@ -746,12 +746,12 @@ window.expandChart = function(chartId, chartTitle) {
       ...rawOptions.plugins,
       legend: {
         ...rawOptions.plugins?.legend,
-        position: 'top', // Mejor posición al expandir
+        position: 'top',
         labels: {
           ...rawOptions.plugins?.legend?.labels,
-          font: { size: 18 } // Aumenta font al expandir
+          font: { size: 18 }
         },
-        padding: 32 // Espacio extra arriba
+        padding: 32
       }
     },
     layout: {
@@ -769,7 +769,6 @@ window.expandChart = function(chartId, chartTitle) {
 
   modal.show();
 
-  // Forzar resize/redraw al mostrar
   setTimeout(() => {
     expandedChartInstance.resize();
     expandedChartInstance.update();
