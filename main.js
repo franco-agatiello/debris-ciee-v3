@@ -715,6 +715,7 @@ function drawLeyendaAnios(canvas, ctx) {
 // --- Gráficas expandidas (fullscreen modal) ---
 let expandedChartInstance = null;
 // --- Bloque JS para expandChart con tamaño correcto y formato robusto ---
+// --- Bloque JS para expandChart con tamaño correcto y formato robusto ---
 window.expandChart = function(chartId, chartTitle) {
   const modalCanvas = document.getElementById('expandChartCanvas');
   // Limpia cualquier gráfico previo
@@ -755,8 +756,4 @@ window.expandChart = function(chartId, chartTitle) {
 
   const modal = new bootstrap.Modal(document.getElementById('chartExpandModal'));
   modal.show();
-};
-    expandedChartInstance.resize();
-    expandedChartInstance.update();
-  }, 350);
 };
