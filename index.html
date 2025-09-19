@@ -309,16 +309,20 @@
   </div>
 </div>
 
-<!-- Modal para gráfica expandida -->
-<div class="modal fade" id="chartExpandModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
+<!-- Modal para expandir gráfica Chart.js -->
+<div class="modal fade" id="expandChartModal" tabindex="-1" aria-labelledby="expandChartLabel" aria-hidden="true">
+  <div class="modal-dialog" style="max-width:90vw;">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 id="expandChartLabel"></h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <span id="expandChartLabel">Título de la gráfica</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
-      <div class="modal-body">
-        <canvas id="expandChartCanvas" width="800" height="500"></canvas>
+      <div class="modal-body" style="text-align:center;">
+        <!-- Canvas para el gráfico expandido -->
+        <canvas id="expandChartCanvas"></canvas>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
