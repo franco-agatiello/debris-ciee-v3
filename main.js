@@ -42,8 +42,13 @@ function anio(str){ if(!str) return null; const y = parseInt(String(str).slice(0
 function numOrNull(v){ if(v===""||v==null) return null; const n=Number(v); return Number.isFinite(n)?n:null; }
 function getLat(d){ return numOrNull(d?.lugar_caida?.lat ?? d?.lat ?? d?.latitude ?? d?.latitud ?? d?.Lat); }
 function getLon(d){ return numOrNull(d?.lugar_caida?.lon ?? d?.lon ?? d?.longitude ?? d?.longitud ?? d?.Lon); }
-function getMasaReingresadaKg(d) { return Number(d.masa_en_orbita) || 0; }
-function getDiasEnOrbita(d){ return Number(d.dias_en_orbita) || 0; }
+
+function getMasaReingresadaKg(d) {
+  return Number(d.masa_en_orbita) || 0;
+}
+function getDiasEnOrbita(d){
+  return Number(d.dias_en_orbita) || 0;
+}
 
 function poblarDropdown(menuId, btnId, items, etiquetaTodos="Todos"){
   const menu = document.getElementById(menuId);
@@ -223,7 +228,7 @@ window.mostrarTrayectoria = function(index) {
   let mensajeDiferencia = '';
   if (d.dias_diferencia !== undefined && d.dias_diferencia !== null) {
     const horas = (d.dias_diferencia * 24).toFixed(2);
-    mensajeDiferencia = `<div class="alert alert-warning p-2 mb-3" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Advertencia:</strong> Diferencia de tiempo estimada entre la caída y los últimos datos orbitales (TLE): <b>${horas} horas</b></div>`;
+    mensajeDiferencia = `<div class="alert alert-warning p-2 mb-3" role="alert"><strong>Advertencia:</strong> Diferencia de tiempo estimada entre la caída y los últimos datos orbitales (TLE): <b>${horas} horas</b></div>`;
   }
   const infoDiv = document.getElementById('trayectoriaInfo');
   if (infoDiv) {
@@ -295,7 +300,7 @@ window.mostrarOrbita3D = function(index) {
   let mensajeDiferencia = '';
   if (d.dias_diferencia !== undefined && d.dias_diferencia !== null) {
     const horas = (d.dias_diferencia * 24).toFixed(2);
-    mensajeDiferencia = `<div class="alert alert-warning p-2 mb-3" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Advertencia:</strong> Diferencia de tiempo estimada entre la caída y los últimos datos orbitales (TLE): <b>${horas} horas</b></div>`;
+    mensajeDiferencia = `<div class="alert alert-warning p-2 mb-3" role="alert"><strong>Advertencia:</strong> Diferencia de tiempo estimada entre la caída y los últimos datos orbitales (TLE): <b>${horas} horas</b></div>`;
   }
   const infoDiv = document.getElementById('orbita3DInfo');
   if (infoDiv) {
@@ -428,40 +433,8 @@ function limpiarSeleccionRect(){
   actualizarMapa();
 }
 
-// --- Informe y PDF con Chart.js estéticas y correcciones ---
-let charts = {}; // Para limpiar instancias previas
-
-function fixChartOptions(options) {
-  // Asegura que los nombres de escala sean string
-  if (options && options.scales) {
-    const fixedScales = {};
-    Object.entries(options.scales).forEach(([key, val]) => {
-      fixedScales[String(key)] = val;
-    });
-    options.scales = fixedScales;
-  }
-  // Elimina funciones o referencias scriptable que puedan causar recursión
-  if (options && options.plugins) {
-    // Elimina callbacks de tooltip si existen
-    if (options.plugins.tooltip && options.plugins.tooltip.callbacks) {
-      options.plugins.tooltip = {
-        ...options.plugins.tooltip,
-        callbacks: undefined
-      };
-    }
-    // Elimina scriptableOptions si existen
-    Object.keys(options.plugins).forEach(pk => {
-      if (options.plugins[pk] && typeof options.plugins[pk]._scriptable !== 'undefined') {
-        delete options.plugins[pk]._scriptable;
-      }
-    });
-  }
-  // Elimina options._scriptable si existe
-  if (options && typeof options._scriptable !== 'undefined') {
-    delete options._scriptable;
-  }
-  return options;
-}
+// --- Informe y PDF con solo mapa de puntos ---
+let charts = {};
 
 function abrirInforme() {
   const modal = new bootstrap.Modal(document.getElementById('informeModal'));
@@ -500,12 +473,7 @@ function abrirInforme() {
           borderColor: '#fff',
         }]
       },
-      options: {
-        plugins: {
-          legend: { display: true },
-          title: { display: false }
-        }
-      }
+      options: { plugins: { legend: { display: true }, title: { display: false } } }
     });
 
     const clases = {};
@@ -541,7 +509,7 @@ function abrirInforme() {
           backgroundColor: '#e53935'
         }]
       },
-      options: fixChartOptions({
+      options: {
         indexAxis: 'y',
         plugins: { legend: { display: false }, tooltip: { enabled: true } },
         scales: {
@@ -550,7 +518,7 @@ function abrirInforme() {
             beginAtZero: true
           }
         }
-      })
+      }
     });
 
     const tiempos = { "<1 año": 0, "1-5 años": 0, "5-10 años": 0, ">10 años": 0 };
@@ -572,16 +540,10 @@ function abrirInforme() {
           borderColor: '#fff',
         }]
       },
-      options: {
-        plugins: {
-          legend: { display: true },
-          title: { display: false }
-        }
-      }
+      options: { plugins: { legend: { display: true }, title: { display: false } } }
     });
 
     drawMapaPuntos(filtrados, 'canvasMapaPuntos');
-
     document.getElementById('informe-loading').style.display = "none";
   }, 600);
 }
@@ -711,42 +673,3 @@ function drawLeyendaAnios(canvas, ctx) {
   });
   ctx.restore();
 }
-
-// --- Gráficas expandidas (fullscreen modal) ---
-let expandedChartInstance = null;
-// JS para expandir gráfica en modal sin deformarla (Chart.js v3+ recomendado)
-
-window.expandChart = function(chartId, chartTitle) {
-  const modalCanvas = document.getElementById('expandChartCanvas');
-  // Destruir cualquier gráfico previo en el canvas del modal
-  if (Chart.getChart(modalCanvas)) Chart.getChart(modalCanvas).destroy();
-
-  const originalCanvas = document.getElementById(chartId);
-  const originalChart = Chart.getChart(originalCanvas);
-  if (!originalChart) return;
-
-  // Actualizar el título del modal
-  document.getElementById('expandChartLabel').textContent = chartTitle;
-
-  // NO modificar width/height manualmente, el CSS controla el tamaño y proporción
-
-  // Copia segura de datos y opciones
-  const safeData = JSON.parse(JSON.stringify(originalChart.data));
-  const rawOptions = JSON.parse(JSON.stringify(originalChart.options));
-  const sanitizedOptions = fixChartOptions({
-    ...rawOptions,
-    responsive: true,
-    maintainAspectRatio: true // Clave para que Chart.js respete el aspecto cuadrado
-  });
-
-  // Crear el gráfico expandido en el canvas del modal
-  window.expandedChartInstance = new Chart(modalCanvas, {
-    type: originalChart.config.type,
-    data: safeData,
-    options: sanitizedOptions
-  });
-
-  // Mostrar el modal (Bootstrap 5)
-  const modal = new bootstrap.Modal(document.getElementById('expandChartModal'));
-  modal.show();
-};
