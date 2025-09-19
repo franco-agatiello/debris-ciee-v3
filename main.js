@@ -714,46 +714,39 @@ function drawLeyendaAnios(canvas, ctx) {
 
 // --- Gráficas expandidas (fullscreen modal) ---
 let expandedChartInstance = null;
-// --- Bloque JS para expandChart con tamaño correcto y formato robusto ---
-// --- Bloque JS para expandChart con tamaño correcto y formato robusto ---
+// JS para expandir gráfica en modal sin deformarla (Chart.js v3+ recomendado)
+
 window.expandChart = function(chartId, chartTitle) {
   const modalCanvas = document.getElementById('expandChartCanvas');
-  // Limpia cualquier gráfico previo
+  // Destruir cualquier gráfico previo en el canvas del modal
   if (Chart.getChart(modalCanvas)) Chart.getChart(modalCanvas).destroy();
-  if (expandedChartInstance) {
-    expandedChartInstance.destroy();
-    expandedChartInstance = null;
-  }
+
   const originalCanvas = document.getElementById(chartId);
   const originalChart = Chart.getChart(originalCanvas);
   if (!originalChart) return;
 
+  // Actualizar el título del modal
   document.getElementById('expandChartLabel').textContent = chartTitle;
 
-  // Ajusta tamaño del canvas al contenedor modal
-  modalCanvas.style.width = "100%";
-  modalCanvas.style.height = "60vh";
-  // Opcional: Si quieres forzar el tamaño físico del canvas para Chart.js
-  modalCanvas.width = modalCanvas.offsetWidth;
-  modalCanvas.height = modalCanvas.offsetHeight;
+  // NO modificar width/height manualmente, el CSS controla el tamaño y proporción
 
-  modalCanvas.getContext("2d").clearRect(0, 0, modalCanvas.width, modalCanvas.height);
-
-  // COPIA SEGURA de datos y opciones
+  // Copia segura de datos y opciones
   const safeData = JSON.parse(JSON.stringify(originalChart.data));
   const rawOptions = JSON.parse(JSON.stringify(originalChart.options));
   const sanitizedOptions = fixChartOptions({
     ...rawOptions,
     responsive: true,
-    maintainAspectRatio: true // Cambia a false si quieres que llene todo el modal
+    maintainAspectRatio: true // Clave para que Chart.js respete el aspecto cuadrado
   });
 
-  expandedChartInstance = new Chart(modalCanvas, {
+  // Crear el gráfico expandido en el canvas del modal
+  window.expandedChartInstance = new Chart(modalCanvas, {
     type: originalChart.config.type,
     data: safeData,
     options: sanitizedOptions
   });
 
-  const modal = new bootstrap.Modal(document.getElementById('chartExpandModal'));
+  // Mostrar el modal (Bootstrap 5)
+  const modal = new bootstrap.Modal(document.getElementById('expandChartModal'));
   modal.show();
 };
