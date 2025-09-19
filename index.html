@@ -197,37 +197,7 @@
       </span>
     </footer>
   </div>
-  <!-- Modals trayectorias y órbitas -->
-  <div class="modal fade" id="modalTrayectoria" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Trayectoria del debris</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div id="trayectoriaInfo" class="text-center text-muted mb-2" style="font-size:0.9em; font-weight:400;"></div>
-          <div id="mapTrayectoria" style="width: 100%; height: 400px;"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="modal fade" id="modalOrbita3D" tabindex="-1" aria-labelledby="modalOrbita3DLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalOrbita3DLabel">Órbita en 3D</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div id="orbita3DInfo" class="text-center text-muted" style="font-size:0.9em; font-weight:400;"></div>
-          <div id="orbita3DContainer"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- Modal Informe -->
-<!-- Modal de Informe con opción de expandir cada gráfica -->
+ <!-- Modal de Informe y los modals de Trayectoria y Órbita 3D incluidos -->
 <div class="modal fade" id="informeModal" tabindex="-1" aria-labelledby="informeLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
@@ -243,61 +213,26 @@
         <div id="informe-resumen" class="mb-3"></div>
         <div class="row mb-2">
           <div class="col-md-6 chart-container mb-3">
-            <h6 class="mb-2">
-              Distribución por tramo (año de caída)
-              <button class="btn btn-sm btn-outline-primary float-end"
-                      onclick="expandChart('chartPieTramos','Distribución por tramo (año de caída)')"
-                      title="Ver gráfico grande">
-                <i class="bi bi-arrows-fullscreen"></i>
-              </button>
-            </h6>
+            <h6 class="mb-2">Distribución por tramo (año de caída)</h6>
             <canvas id="chartPieTramos" width="350" height="170"></canvas>
           </div>
           <div class="col-md-6 chart-container mb-3">
-            <h6 class="mb-2">
-              Distribución por clase de objeto
-              <button class="btn btn-sm btn-outline-primary float-end"
-                      onclick="expandChart('chartBarClases','Distribución por clase de objeto')"
-                      title="Ver gráfico grande">
-                <i class="bi bi-arrows-fullscreen"></i>
-              </button>
-            </h6>
+            <h6 class="mb-2">Distribución por clase de objeto</h6>
             <canvas id="chartBarClases" width="350" height="170"></canvas>
           </div>
         </div>
         <div class="row mb-2">
           <div class="col-md-6 chart-container mb-3">
-            <h6 class="mb-2">
-              Masa reingresada (kg) por tipo de debris
-              <button class="btn btn-sm btn-outline-primary float-end"
-                      onclick="expandChart('chartBarTipoMasa','Masa reingresada (kg) por tipo de debris')"
-                      title="Ver gráfico grande">
-                <i class="bi bi-arrows-fullscreen"></i>
-              </button>
-            </h6>
+            <h6 class="mb-2">Masa reingresada (kg) por tipo de debris</h6>
             <canvas id="chartBarTipoMasa" width="350" height="170"></canvas>
           </div>
           <div class="col-md-6 chart-container mb-3">
-            <h6 class="mb-2">
-              Tiempo en órbita
-              <button class="btn btn-sm btn-outline-primary float-end"
-                      onclick="expandChart('chartPieTiempo','Tiempo en órbita')"
-                      title="Ver gráfico grande">
-                <i class="bi bi-arrows-fullscreen"></i>
-              </button>
-            </h6>
+            <h6 class="mb-2">Tiempo en órbita</h6>
             <canvas id="chartPieTiempo" width="350" height="170"></canvas>
           </div>
         </div>
         <div class="col-12 chart-container">
-          <h6 class="mb-2">
-            Mapa de puntos (por año de caída)
-            <button class="btn btn-sm btn-outline-primary float-end"
-                    onclick="expandChart('canvasMapaPuntos','Mapa de puntos (por año de caída)')"
-                    title="Ver gráfico grande">
-              <i class="bi bi-arrows-fullscreen"></i>
-            </button>
-          </h6>
+          <h6 class="mb-2">Mapa de puntos (por año de caída)</h6>
           <canvas id="canvasMapaPuntos" width="650" height="320"></canvas>
         </div>
       </div>
@@ -309,20 +244,41 @@
   </div>
 </div>
 
-<!-- Modal para expandir gráfica Chart.js -->
-<div class="modal fade" id="expandChartModal" tabindex="-1" aria-labelledby="expandChartLabel" aria-hidden="true">
-  <div class="modal-dialog" style="max-width:90vw;">
+<!-- Modal Trayectoria -->
+<div class="modal fade" id="modalTrayectoria" tabindex="-1" aria-labelledby="trayectoriaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <span id="expandChartLabel">Título de la gráfica</span>
+        <h5 class="modal-title" id="trayectoriaLabel">Trayectoria orbital (últimos TLE)</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
-      <div class="modal-body" style="text-align:center;">
-        <!-- Canvas para el gráfico expandido -->
-        <canvas id="expandChartCanvas"></canvas>
+      <div class="modal-body">
+        <div id="trayectoriaInfo" class="mb-2"></div>
+        <div id="trayectoriaMapContainer" style="width:100%;height:400px;">
+          <div id="mapTrayectoria" style="width:100%;height:400px;"></div>
+        </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Órbita 3D -->
+<div class="modal fade" id="modalOrbita3D" tabindex="-1" aria-labelledby="orbita3DLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="orbita3DLabel">Órbita 3D (últimos TLE)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div id="orbita3DInfo" class="mb-2"></div>
+        <div id="orbita3DContainer" style="width:100%;height:500px;background:#000;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
