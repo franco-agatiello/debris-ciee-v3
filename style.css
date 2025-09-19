@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
+/* ----------- BASE DE LA APP ----------- */
 html, body {
   height: 100%;
   margin: 0; padding: 0; overflow-x: hidden !important;
@@ -45,157 +46,45 @@ body > .container-fluid { width: 100vw !important; max-width: 100vw !important; 
   #footer-ciee { position: static; display: block; width: 100%; text-align: center; margin: 16px 0 0 0; left: 0; bottom: 0; border-radius: 0; border-left: none; border-right: none; transform: none; }
 }
 
-/* --- MODAL INFORME Y MODAL EXPANDIR GRÁFICA --- */
-.modal-content {
-  border-radius: 1rem;
-  background: #fff;
-}
-
-.modal-header {
-  border-bottom: 1px solid #e5e7eb;
-  background: #f7f9fb;
-  border-radius: 1rem 1rem 0 0;
-  padding: 1rem 1.5rem;
-}
-
-.modal-title {
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: #23272f;
-}
-
-.modal-body {
-  padding: 1.25rem 1.5rem;
-  background: #f7f9fb;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #e5e7eb;
-  background: #fff;
-  border-radius: 0 0 1rem 1rem;
-}
-
-/* Botón para exportar PDF y cerrar */
-#dlPDF.btn-success {
-  font-weight: 600;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  margin-right: 0.5rem;
-  box-shadow: 0 2px 8px rgba(44,62,80,0.07);
-}
-
-.btn-secondary[data-bs-dismiss="modal"] {
-  border-radius: 0.5rem;
+/* ----------- DROPDOWN Y FILTROS ----------- */
+#dropdownPaisMenu { max-height: 260px; overflow-y: auto; }
+.dropdown-menu {
+  border-radius: 0.65rem;
+  box-shadow: 0 2px 8px rgba(44,62,80,0.09);
   font-size: 1rem;
 }
+.dropdown-item:active,
+.dropdown-item:focus {
+  background: #f0f4fa;
+  color: #1a237e;
+}
 
-/* --- Chart containers y responsive --- */
-.chart-container {
-  background: #fff;
+/* ----------- MAPA PRINCIPAL ----------- */
+#map {
   border-radius: 1rem;
-  box-shadow: 0 2px 8px rgba(44,62,80,0.04);
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-/* Botón expandir gráfica */
-.chart-container .btn-outline-primary {
-  margin-left: 0.5rem;
-  font-size: 0.95rem;
-  padding: 0.18rem 0.6rem;
-}
-
-.chart-container h6 {
-  font-weight: 500;
-  font-size: 1rem;
-}
-
-/* --- Canvas de mapa y gráfico expandido --- */
-#canvasMapaPuntos {
-  max-width: 100%;
-  border-radius: 0.7rem;
-  box-shadow: 0 2px 8px rgba(44,62,80,0.04);
-  margin: auto;
-  display: block;
-}
-
-/* --- CANVAS EXPANDIDO DE GRÁFICA EN MODAL --- */
-#expandChartModal .modal-dialog {
-  max-width: 90vw;
-}
-
-#expandChartModal .modal-content {
-  border-radius: 1.5rem;
-  box-shadow: 0 2px 24px rgba(44,62,80,0.14);
-  background: #f7f9fb;
-}
-
-#expandChartCanvas {
-  display: block;
-  margin: 32px auto 32px auto;
-  width: min(70vw, 700px) !important;
-  height: min(70vw, 700px) !important;
-  max-width: 700px;
-  max-height: 700px;
-  aspect-ratio: 1 / 1 !important;
-  border-radius: 1rem;
-  box-shadow: 0 2px 16px rgba(44,62,80,0.09);
-  background: #f7f9fb;
-  user-select: none;
-  transition: width 0.2s, height 0.2s;
-}
-
-#expandChartLabel {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #2560e0;
-  margin-bottom: 0.5rem;
-  padding: 0.25rem 0.5rem;
-  background: #e6f0ff;
-  border-radius: 0.3rem;
-  display: inline-block;
-}
-
-/* Responsive en mobile */
-@media (max-width: 700px) {
-  #expandChartCanvas {
-    width: min(98vw, 400px) !important;
-    height: min(98vw, 400px) !important;
-    max-width: 98vw;
-    max-height: 400px;
-    aspect-ratio: 1 / 1 !important;
-    margin: 18px auto 18px auto;
-  }
-  #expandChartLabel {
-    font-size: 1rem;
-    padding: 0.2rem 0.3rem;
-  }
-  #expandChartModal .modal-dialog {
-    max-width: 98vw;
-    margin: 0;
-  }
-}
-
-/* Opcional: mejora la vista de la leyenda Chart.js en el modal */
-#expandChartModal .chartjs-render-monitor + .chartjs-legend {
-  margin-top: 1rem;
+  box-shadow: 0 2px 8px rgba(44,62,80,0.09);
   margin-bottom: 1rem;
-  text-align: center;
 }
 
-/* --- Spinner loading informe --- */
-#informe-loading {
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ========== Feedback gráfico selección rectangular mapa ========== */
+.leaflet-interactive.selecting-rect {
+  stroke-dasharray: 6 3;
+  stroke: #0d6efd;
+  fill: #0d6efd55;
+  animation: dashmove 1s linear infinite;
+}
+@keyframes dashmove {
+  to {
+    stroke-dashoffset: 18;
+  }
+}
+.selecting-rect {
+  stroke: #0d6efd !important;
+  fill: #0d6efd !important;
+  opacity: 0.17 !important;
 }
 
-/* --- Leyenda en los canvas mapa/gráfica --- */
+/* ----------- INFO Y LEYENDAS MAPA ----------- */
 .info.legend {
   background: #fff;
   opacity: 1;
@@ -224,6 +113,86 @@ body > .container-fluid { width: 100vw !important; max-width: 100vw !important; 
   margin-right: 20px !important;
   margin-bottom: 20px !important;
 }
+
+/* ----------- MODALS (INFORME/TRAYECTORIA/ÓRBITA) ----------- */
+.modal-content {
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 8px 32px rgba(44,62,80,0.09);
+  border: none;
+}
+.modal-header {
+  border-bottom: 1px solid #e5e7eb;
+  background: #f7f9fb;
+  border-radius: 1rem 1rem 0 0;
+  padding: 1rem 1.5rem;
+}
+.modal-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #23272f;
+}
+.modal-body {
+  padding: 1.25rem 1.5rem;
+  background: #f7f9fb;
+}
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 0 0 1rem 1rem;
+}
+
+/* ----------- BOTONES DEL MODAL ----------- */
+#dlPDF.btn-success {
+  font-weight: 600;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  margin-right: 0.5rem;
+  box-shadow: 0 2px 8px rgba(44,62,80,0.07);
+}
+.btn-secondary[data-bs-dismiss="modal"] {
+  border-radius: 0.5rem;
+  font-size: 1rem;
+}
+
+/* ----------- CHARTS Y CANVAS ----------- */
+.chart-container {
+  background: #fff;
+  border-radius: 0.85rem;
+  box-shadow: 0 2px 8px rgba(44,62,80,0.08);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+canvas {
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+}
+
+/* ----------- SPINNER Y LOADING ----------- */
+#informe-loading {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+/* ----------- MODAL TRAJECTORY Y ORBITA 3D ----------- */
+#mapTrayectoria, #orbita3DContainer {
+  border-radius: 0.85rem;
+  box-shadow: 0 2px 8px rgba(44,62,80,0.08);
+  margin-bottom: 1rem;
+  background: #f7f9fb;
+}
+#orbita3DContainer { width: 100%; height: 70vh; max-height: 500px; }
+
+/* ----------- ALERTAS EN MODALS ----------- */
 .alert-warning {
     color: #856404;
     background-color: #fff3cd;
@@ -239,20 +208,6 @@ body > .container-fluid { width: 100vw !important; max-width: 100vw !important; 
 .alert-warning strong {
   font-weight: bold;
 }
-#canvasPlanta {
-  background: #000010 !important;
-  border-radius: 18px;
-  display: block;
-  margin: 0 auto;
-  box-shadow: 0 2px 12px rgba(44,62,80,0.10);
-}
-#modalTrayectoria .modal-title { font-size: 1.2rem; font-weight: 600; color: #3f51b5; }
-#modalOrbitaPlanta .modal-title { font-size: 1.2rem; font-weight: 700; color: #ff9900; }
-#orbitaPlantaInfo { font-size: 1rem; margin-bottom: 10px; color: #23272f; font-weight: 500; letter-spacing: 0.01em; }
-.leaflet-popup-content .btn-info { background: #3f51b5; border: none; color: #fff; }
-.leaflet-popup-content .btn-warning { background: #ff9900; border: none; color: #fff; }
-.leaflet-popup-content .btn-info:hover, .leaflet-popup-content .btn-warning:hover { opacity: 0.8; }
-#orbita3DContainer { width: 100%; height: 70vh; max-height: 500px; }
 
 /* ============== Ajustes visuales constelación toggle ============== */
 .btn-group[role="group"][aria-label="Constelaciones"] label.btn {
@@ -270,15 +225,12 @@ body > .container-fluid { width: 100vw !important; max-width: 100vw !important; 
   text-overflow: ellipsis;
   transition: background 0.14s, color 0.14s;
 }
-
 .btn-group[role="group"][aria-label="Constelaciones"] .btn-check:checked + label.btn,
 .btn-group[role="group"][aria-label="Constelaciones"] label.btn.active {
   background: #6c757d;
   color: #fff;
   border-color: #6c757d;
 }
-
-/* Responsive: achica un poco en mobile */
 @media (max-width: 500px) {
   .btn-group[role="group"][aria-label="Constelaciones"] label.btn {
     min-width: 77px;
@@ -288,21 +240,34 @@ body > .container-fluid { width: 100vw !important; max-width: 100vw !important; 
     line-height: 2em;
   }
 }
-/* ========== Feedback gráfico selección rectangular mapa ========== */
-.leaflet-interactive.selecting-rect {
-  stroke-dasharray: 6 3;
-  stroke: #0d6efd;
-  fill: #0d6efd55;
-  animation: dashmove 1s linear infinite;
+
+/* ----------- CANVAS 3D PLANTA ----------- */
+#canvasPlanta {
+  background: #000010 !important;
+  border-radius: 18px;
+  display: block;
+  margin: 0 auto;
+  box-shadow: 0 2px 12px rgba(44,62,80,0.10);
 }
-@keyframes dashmove {
-  to {
-    stroke-dashoffset: 18;
-  }
+#modalTrayectoria .modal-title { font-size: 1.2rem; font-weight: 600; color: #3f51b5; }
+#modalOrbitaPlanta .modal-title { font-size: 1.2rem; font-weight: 700; color: #ff9900; }
+#orbitaPlantaInfo { font-size: 1rem; margin-bottom: 10px; color: #23272f; font-weight: 500; letter-spacing: 0.01em; }
+.leaflet-popup-content .btn-info { background: #3f51b5; border: none; color: #fff; }
+.leaflet-popup-content .btn-warning { background: #ff9900; border: none; color: #fff; }
+.leaflet-popup-content .btn-info:hover, .leaflet-popup-content .btn-warning:hover { opacity: 0.8; }
+
+/* ----------- HEADINGS Y TEXTOS ----------- */
+h5, h6 {
+  color: #23272f;
+  font-weight: 600;
 }
 
-/* --- Responsive para pantallas chicas: modal y canvas --- */
-@media (max-width: 900px) {
+/* ----------- MODAL SCROLLABLE Y RESPONSIVE ----------- */
+.modal-dialog-scrollable .modal-content {
+  max-height: 90vh;
+  overflow: auto;
+}
+@media (max-width: 768px) {
   .modal-dialog {
     max-width: 99vw;
     margin: 0.5rem auto;
@@ -311,17 +276,14 @@ body > .container-fluid { width: 100vw !important; max-width: 100vw !important; 
     padding: 1rem;
   }
   .chart-container {
-    padding: 0.6rem;
+    padding: 0.5rem;
     margin-bottom: 1rem;
   }
-  #expandChartCanvas {
-    width: min(98vw, 400px) !important;
-    height: min(98vw, 400px) !important;
-    max-width: 98vw;
-    max-height: 400px;
-    aspect-ratio: 1 / 1 !important;
-    margin: 18px auto 18px auto;
+  .modal-header, .modal-footer {
+    border-radius: 0.75rem !important;
+  }
+  #mapTrayectoria, #orbita3DContainer {
+    height: 240px !important;
+    max-height: 240px !important;
   }
 }
-
-/* <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"> */
